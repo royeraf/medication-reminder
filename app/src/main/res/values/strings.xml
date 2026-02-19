@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MedReminder</string>
+    <string name="notification_channel_id">medication_reminders</string>
+    <string name="notification_channel_name">Medication Reminders</string>
+    <string name="notification_channel_desc">Reminders to take your medications on time</string>
+</resources>
