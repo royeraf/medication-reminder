@@ -33,16 +33,23 @@ class RemindersViewModel @Inject constructor(
 
     private fun loadMedications() {
         viewModelScope.launch {
-            getMedicationsUseCase().collect { medications ->
-                // Load schedules for each medication
-                val medicationsWithSchedules = medications.map { med ->
-                    val schedules = medicationRepository.getSchedulesForMedicationSync(med.id)
-                    med.copy(schedules = schedules)
+            getMedicationsUseCase()
+                .flatMapLatest { medications ->
+                    if (medications.isEmpty()) {
+                        flowOf(emptyList())
+                    } else {
+                        val scheduleFlows = medications.map { med ->
+                            medicationRepository.getSchedulesForMedication(med.id)
+                                .map { schedules -> med.copy(schedules = schedules) }
+                        }
+                        combine(scheduleFlows) { it.toList() }
+                    }
                 }
-                _uiState.update {
-                    it.copy(medications = medicationsWithSchedules, isLoading = false)
+                .collect { medicationsWithSchedules ->
+                    _uiState.update {
+                        it.copy(medications = medicationsWithSchedules, isLoading = false)
+                    }
                 }
-            }
         }
     }
 
@@ -57,7 +64,6 @@ class RemindersViewModel @Inject constructor(
             } else {
                 alarmScheduler.cancelAlarm(schedule)
             }
-            loadMedications() // refresh
         }
     }
 }

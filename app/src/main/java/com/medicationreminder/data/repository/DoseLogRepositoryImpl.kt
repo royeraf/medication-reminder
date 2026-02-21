@@ -1,6 +1,7 @@
 package com.medicationreminder.data.repository
 
 import com.medicationreminder.data.local.dao.DoseLogDao
+import com.medicationreminder.data.local.dao.DoseLogWithColor
 import com.medicationreminder.data.local.entity.DoseLogEntity
 import com.medicationreminder.data.local.entity.DoseStatus
 import com.medicationreminder.domain.model.DoseLog
@@ -20,6 +21,11 @@ class DoseLogRepositoryImpl @Inject constructor(
             list.map { it.toDomain() }
         }
 
+    override fun getDoseLogsForRange(startDate: Long, endDate: Long): Flow<List<DoseLog>> =
+        doseLogDao.getDoseLogsForRange(startDate, endDate).map { list ->
+            list.map { it.toDomain() }
+        }
+
     override fun getRecentLogsForMedication(medicationId: Long, limit: Int): Flow<List<DoseLog>> =
         doseLogDao.getRecentLogsForMedication(medicationId, limit).map { list ->
             list.map { it.toDomain() }
@@ -28,8 +34,19 @@ class DoseLogRepositoryImpl @Inject constructor(
     override suspend fun getDoseLogById(id: Long): DoseLog? =
         doseLogDao.getDoseLogById(id)?.toDomain()
 
-    override suspend fun saveDoseLog(doseLog: DoseLog): Long =
-        doseLogDao.insertDoseLog(doseLog.toEntity())
+    override suspend fun saveDoseLog(doseLog: DoseLog): Long {
+        // Check if dose log for this medication, schedule and time already exists
+        val existing = doseLogDao.getDoseLogByScheduledTime(
+            doseLog.medicationId,
+            doseLog.scheduleId,
+            doseLog.scheduledTime
+        )
+        return if (existing != null) {
+            existing.id
+        } else {
+            doseLogDao.insertDoseLog(doseLog.toEntity())
+        }
+    }
 
     override suspend fun updateDoseStatus(id: Long, status: DoseStatus, takenAt: Long?) =
         doseLogDao.updateDoseStatus(id, status.name, takenAt)
@@ -40,13 +57,16 @@ class DoseLogRepositoryImpl @Inject constructor(
     override fun getTotalDoseCount(startDate: Long): Flow<Int> =
         doseLogDao.getTotalDoseCount(startDate)
 
-    private fun DoseLogEntity.toDomain() = DoseLog(
+    private fun DoseLogWithColor.toDomain() = DoseLog(
         id = id,
         medicationId = medicationId,
         scheduleId = scheduleId,
         scheduledTime = scheduledTime,
         takenAt = takenAt,
-        status = DoseStatus.valueOf(status)
+        status = DoseStatus.valueOf(status),
+        medicationName = medicationName,
+        scheduleLabel = scheduleLabel,
+        color = color
     )
 
     private fun DoseLog.toEntity() = DoseLogEntity(
@@ -55,6 +75,8 @@ class DoseLogRepositoryImpl @Inject constructor(
         scheduleId = scheduleId,
         scheduledTime = scheduledTime,
         takenAt = takenAt,
-        status = status.name
+        status = status.name,
+        medicationName = medicationName,
+        scheduleLabel = scheduleLabel
     )
 }

@@ -15,7 +15,10 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("medicationId")]
+    indices = [
+        Index("medicationId"),
+        Index(value = ["medicationId", "scheduleId", "scheduledTime"], unique = true)
+    ]
 )
 data class DoseLogEntity(
     @PrimaryKey(autoGenerate = true)
@@ -24,7 +27,9 @@ data class DoseLogEntity(
     val scheduleId: Long,
     val scheduledTime: Long,        // Epoch millis of the scheduled dose
     val takenAt: Long? = null,      // Epoch millis when actually taken (null = missed)
-    val status: String = DoseStatus.PENDING.name  // PENDING, TAKEN, MISSED, SKIPPED
+    val status: String = DoseStatus.PENDING.name,  // PENDING, TAKEN, MISSED, SKIPPED
+    val medicationName: String = "",
+    val scheduleLabel: String = ""
 )
 
 enum class DoseStatus { PENDING, TAKEN, MISSED, SKIPPED }

@@ -15,7 +15,7 @@ import com.medicationreminder.data.local.entity.ScheduleEntity
         ScheduleEntity::class,
         DoseLogEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

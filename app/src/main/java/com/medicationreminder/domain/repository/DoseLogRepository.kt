@@ -8,6 +8,8 @@ interface DoseLogRepository {
 
     fun getDoseLogsForDay(startOfDay: Long, endOfDay: Long): Flow<List<DoseLog>>
 
+    fun getDoseLogsForRange(startDate: Long, endDate: Long): Flow<List<DoseLog>>
+
     fun getRecentLogsForMedication(medicationId: Long, limit: Int = 30): Flow<List<DoseLog>>
 
     suspend fun getDoseLogById(id: Long): DoseLog?

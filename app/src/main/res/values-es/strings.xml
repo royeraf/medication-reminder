@@ -4,6 +4,9 @@
     <string name="notification_channel_id">medication_reminders</string>
     <string name="notification_channel_name">Recordatorios de Medicamentos</string>
     <string name="notification_channel_desc">Recordatorios para tomar sus medicamentos a tiempo</string>
+    <string name="notification_title">Toma tu %s ahora</string>
+    <string name="notification_body_with_label">Dosis de %s · Toca para confirmar que la tomaste</string>
+    <string name="notification_body_default">Toca para confirmar que tomaste tu medicamento</string>
 
     <!-- Navegación -->
     <string name="nav_home">Inicio</string>
@@ -25,6 +28,16 @@
     <string name="home_empty_title">No hay dosis hoy</string>
     <string name="home_empty_desc">Añade medicamentos y configura\ntu horario de recordatorios</string>
     <string name="home_notifications_desc">Notificaciones</string>
+    <string name="home_refresh_desc">Refrescar datos</string>
+    <string name="home_take_dose">Tomar</string>
+    <string name="home_taken_at">Tomada a las %s</string>
+    <string name="home_section_upcoming">Próximas dosis</string>
+    <string name="home_section_history">Historial de hoy</string>
+    <string name="home_history_taken">%d tomadas</string>
+    <string name="home_history_missed">%d perdidas</string>
+    <string name="home_dose_missed">Perdida</string>
+    <string name="home_today_label">Hoy</string>
+    <string name="home_yesterday_label">Ayer</string>
 
     <!-- Pantalla de Medicamentos -->
     <string name="medications_title">Medicamentos</string>
@@ -59,6 +72,11 @@
     <string name="error_name_required">Por favor, introduce el nombre</string>
     <string name="error_schedule_required">Por favor, añade al menos un horario</string>
     <string name="back_button">Atrás</string>
+    <string name="medication_delete">Eliminar medicamento</string>
+    <string name="medication_delete_dialog_title">¿Eliminar medicamento?</string>
+    <string name="medication_delete_dialog_msg">Esto eliminará permanentemente %s y todos sus recordatorios. Esta acción no se puede deshacer.</string>
+    <string name="medication_delete_confirm">Eliminar</string>
+    <string name="medication_delete_cancel">Cancelar</string>
 
     <!-- Pantalla de Recordatorios -->
     <string name="reminders_title">Recordatorios</string>
@@ -83,6 +101,10 @@
     <string name="settings_dark_mode_desc">Usar esquema de colores oscuros</string>
     <string name="settings_follow_system">Seguir Sistema</string>
     <string name="settings_follow_system_desc">Usar ajustes de tema del sistema</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_desc">Selecciona tu idioma preferido</string>
+    <string name="settings_language_en">Inglés</string>
+    <string name="settings_language_es">Español</string>
     <string name="settings_about_section">Acerca de</string>
     <string name="settings_version">Versión</string>
     <string name="settings_privacy_policy">Política de Privacidad</string>

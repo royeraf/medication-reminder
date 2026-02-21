@@ -2,63 +2,69 @@ package com.medicationreminder.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary palette – indigo-blue, modern & clean
-val Primary = Color(0xFF4F6AF5)
-val PrimaryVariant = Color(0xFF3451D1)
-val PrimaryContainer = Color(0xFFDDE3FF)
-val OnPrimaryContainer = Color(0xFF0A1B6B)
+// Primary palette – Teal (Petróleo/Azul verdoso)
+val Primary = Color(0xFF008080)
+val PrimaryVariant = Color(0xFF006666)
+val PrimaryContainer = Color(0xFFB2DFDB)
+val OnPrimaryContainer = Color(0xFF002020)
 
-// Secondary – soft teal accent
-val Secondary = Color(0xFF38BFA1)
-val SecondaryContainer = Color(0xFFBCF0E4)
-val OnSecondaryContainer = Color(0xFF00382E)
+// Secondary – Soft teal/aqua accent
+val Secondary = Color(0xFF4DB6AC)
+val SecondaryContainer = Color(0xFFE0F2F1)
+val OnSecondaryContainer = Color(0xFF004D40)
 
-// Tertiary – warm amber (for warnings / missed doses)
-val Tertiary = Color(0xFFF5A623)
-val TertiaryContainer = Color(0xFFFFDDB8)
-val OnTertiaryContainer = Color(0xFF4A2800)
+// Tertiary – Warm amber/gold (para alertas/recordatorios)
+val Tertiary = Color(0xFFFFA000)
+val TertiaryContainer = Color(0xFFFFECB3)
+val OnTertiaryContainer = Color(0xFF5D4037)
 
-// Error
-val Error = Color(0xFFE53935)
+// Error – Rojo suave
+val Error = Color(0xFFBA1A1A)
 val ErrorContainer = Color(0xFFFFDAD6)
 val OnErrorContainer = Color(0xFF410002)
 
-// Success
-val Success = Color(0xFF2E7D32)
-val SuccessContainer = Color(0xFFC8E6C9)
+// Success – Verde suave (Ajustado para mejores contrastes)
+val Success = Color(0xFF2E7D32) // Verde más oscuro para mejor lectura
+val SuccessContainer = Color(0xFFE8F5E9) // Fondo verde muy claro (Modo Claro)
+val OnSuccessContainer = Color(0xFF1B5E20) // Texto sobre el fondo claro
+
+// Dark Mode Success
+val SuccessDark = Color(0xFF81C784) // Verde más claro para Modo Oscuro
+val SuccessContainerDark = Color(0xFF00391C) // Fondo verde oscuro
+val OnSuccessContainerDark = Color(0xFFC8E6C9) // Texto sobre fondo oscuro
 
 // Neutral – Light theme
-val Background = Color(0xFFF8F9FF)
+val Background = Color(0xFFF4F9F9)
 val Surface = Color(0xFFFFFFFF)
-val SurfaceVariant = Color(0xFFF0F2FF)
+val SurfaceVariant = Color(0xFFE0E9E9)
 val SurfaceElevated = Color(0xFFFFFFFF)
-val Outline = Color(0xFFE0E4F0)
-val OutlineVariant = Color(0xFFCAD0E8)
+val Outline = Color(0xFFBFC8C8)
+val OutlineVariant = Color(0xFFDAE4E4)
 
-val OnBackground = Color(0xFF1A1C2E)
-val OnSurface = Color(0xFF1A1C2E)
-val OnSurfaceVariant = Color(0xFF5C5F7A)
+val OnBackground = Color(0xFF191C1C)
+val OnSurface = Color(0xFF191C1C)
+val OnSurfaceVariant = Color(0xFF3F4948)
 
 // Neutral – Dark theme
-val BackgroundDark = Color(0xFF0F1120)
-val SurfaceDark = Color(0xFF1A1D2E)
-val SurfaceVariantDark = Color(0xFF252840)
-val OutlineDark = Color(0xFF373A52)
-val OutlineVariantDark = Color(0xFF2C2F45)
+val BackgroundDark = Color(0xFF191C1C)
+val SurfaceDark = Color(0xFF1B1F1F)
+val SurfaceVariantDark = Color(0xFF3F4948)
+val OutlineDark = Color(0xFF899392)
+val OutlineVariantDark = Color(0xFF3F4948)
 
-val OnBackgroundDark = Color(0xFFE6E8FF)
-val OnSurfaceDark = Color(0xFFE6E8FF)
-val OnSurfaceVariantDark = Color(0xFF9BA0C0)
+val OnBackgroundDark = Color(0xFFE1E3E3)
+val OnSurfaceDark = Color(0xFFE1E3E3)
+val OnSurfaceVariantDark = Color(0xFFBFC8C8)
 
-// Status colors
-val DoseMorning = Color(0xFFFFF3E0)
-val DoseMorningIcon = Color(0xFFF57C00)
-val DoseAfternoon = Color(0xFFE3F2FD)
-val DoseAfternoonIcon = Color(0xFF1976D2)
-val DoseEvening = Color(0xFFEDE7F6)
-val DoseEveningIcon = Color(0xFF7B1FA2)
-val DoseNight = Color(0xFFE8EAF6)
-val DoseNightIcon = Color(0xFF303F9F)
+// Status colors (basados en Teal)
+val DoseMorning = Color(0xFFE0F2F1)
+val DoseMorningIcon = Color(0xFF00796B)
+val DoseAfternoon = Color(0xFFB2DFDB)
+val DoseAfternoonIcon = Color(0xFF00695C)
+val DoseEvening = Color(0xFF80CBC4)
+val DoseEveningIcon = Color(0xFF004D40)
+val DoseNight = Color(0xFFE0F2F1)
+val DoseNightIcon = Color(0xFF004D40)
 
 // Neutral shades
 val Gray50 = Color(0xFFF8F9FA)

@@ -4,4 +4,123 @@
     <string name="notification_channel_id">medication_reminders</string>
     <string name="notification_channel_name">Medication Reminders</string>
     <string name="notification_channel_desc">Reminders to take your medications on time</string>
+    <string name="notification_title">Time to take %s</string>
+    <string name="notification_body_with_label">%s dose · Tap to confirm you\'ve taken it</string>
+    <string name="notification_body_default">Tap to confirm you\'ve taken your medication</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_medications">Medications</string>
+    <string name="nav_reminders">Reminders</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home Screen -->
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="greeting_night">Good night</string>
+    <string name="home_title">Your medications</string>
+    <string name="home_today_schedule">Today\'s Schedule</string>
+    <string name="home_today_progress">Today\'s Progress</string>
+    <string name="home_no_medications_today">No medications scheduled for today</string>
+    <string name="home_all_taken">All doses taken! Great job!</string>
+    <string name="home_doses_remaining">%d doses remaining</string>
+    <string name="home_empty_title">No doses scheduled today</string>
+    <string name="home_empty_desc">Add medications and configure\nyour reminder schedule</string>
+    <string name="home_notifications_desc">Notifications</string>
+    <string name="home_refresh_desc">Refresh data</string>
+    <string name="home_take_dose">Take</string>
+    <string name="home_taken_at">Taken at %s</string>
+    <string name="home_section_upcoming">Coming up</string>
+    <string name="home_section_history">Today\'s history</string>
+    <string name="home_history_taken">%d taken</string>
+    <string name="home_history_missed">%d missed</string>
+    <string name="home_dose_missed">Missed</string>
+    <string name="home_today_label">Today</string>
+    <string name="home_yesterday_label">Yesterday</string>
+
+    <!-- Medications Screen -->
+    <string name="medications_title">Medications</string>
+    <string name="medications_count_one">1 medication</string>
+    <string name="medications_count_plural">%d medications</string>
+    <string name="medications_add">Add Medication</string>
+    <string name="medications_deleted">%s deleted</string>
+    <string name="medications_search_placeholder">Search medications…</string>
+    <string name="medications_empty_title">No medications yet</string>
+    <string name="medications_empty_desc">Tap + to add your first medication</string>
+    <string name="medications_no_results_title">No results found</string>
+    <string name="medications_no_results_desc">Try a different search term</string>
+
+    <!-- Add/Edit Medication Screen -->
+    <string name="medication_add_title">Add Medication</string>
+    <string name="medication_edit_title">Edit Medication</string>
+    <string name="medication_save">Save Medication</string>
+    <string name="medication_update">Update Medication</string>
+    <string name="medication_search_section">Search Medication</string>
+    <string name="medication_search_hint">Search RxNorm (e.g. Ibuprofen)…</string>
+    <string name="medication_details_section">Medication Details</string>
+    <string name="medication_name_label">Name *</string>
+    <string name="medication_strength_label">Strength</string>
+    <string name="medication_strength_hint">e.g. 500 mg</string>
+    <string name="medication_form_label">Form</string>
+    <string name="medication_form_hint">e.g. Tablet</string>
+    <string name="medication_notes_label">Instructions / Notes</string>
+    <string name="medication_color_section">Color Tag</string>
+    <string name="medication_schedule_section">Reminder Schedule</string>
+    <string name="medication_add_time">Add time</string>
+    <string name="medication_no_times">No reminder times added</string>
+    <string name="error_name_required">Please enter a medication name</string>
+    <string name="error_schedule_required">Please add at least one reminder time</string>
+    <string name="back_button">Back</string>
+    <string name="medication_delete">Delete medication</string>
+    <string name="medication_delete_dialog_title">Delete medication?</string>
+    <string name="medication_delete_dialog_msg">This will permanently delete %s and all its reminders. This action cannot be undone.</string>
+    <string name="medication_delete_confirm">Delete</string>
+    <string name="medication_delete_cancel">Cancel</string>
+
+    <!-- Reminders Screen -->
+    <string name="reminders_title">Reminders</string>
+    <string name="reminders_subtitle">Manage your medication schedule</string>
+    <string name="reminders_active_count">%d active</string>
+    <string name="reminders_none">No reminders configured</string>
+    <string name="reminders_empty_title">No reminders set</string>
+    <string name="reminders_empty_desc">Add a medication to configure reminders</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Customize your experience</string>
+    <string name="settings_notifications_section">Notifications</string>
+    <string name="settings_push_notifications">Push Notifications</string>
+    <string name="settings_push_notifications_desc">Receive medication reminders</string>
+    <string name="settings_sound">Sound</string>
+    <string name="settings_sound_desc">Play sound for reminders</string>
+    <string name="settings_vibration">Vibration</string>
+    <string name="settings_vibration_desc">Vibrate for reminders</string>
+    <string name="settings_appearance_section">Appearance</string>
+    <string name="settings_dark_mode">Dark Mode</string>
+    <string name="settings_dark_mode_desc">Use dark color scheme</string>
+    <string name="settings_follow_system">Follow System</string>
+    <string name="settings_follow_system_desc">Use system theme settings</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_desc">Select your preferred language</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_es">Spanish</string>
+    <string name="settings_about_section">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_privacy_policy_desc">View our privacy policy</string>
+    <string name="settings_data_source">Drug data source</string>
+    <string name="settings_data_source_desc">RxNorm – National Library of Medicine</string>
+
+    <!-- Notification Permission -->
+    <string name="perm_dialog_title">Enable Notifications</string>
+    <string name="perm_dialog_desc">To ensure you never miss a dose, please enable notifications. This is crucial for your medication schedule.</string>
+    <string name="perm_dialog_allow">Allow Notifications</string>
+    <string name="perm_dialog_settings">Open App Settings</string>
+
+    <!-- Time periods -->
+    <string name="period_morning">Morning</string>
+    <string name="period_afternoon">Afternoon</string>
+    <string name="period_evening">Evening</string>
+    <string name="period_night">Night</string>
 </resources>

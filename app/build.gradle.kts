@@ -104,6 +104,9 @@ dependencies {
     // DataStore
     implementation(libs.datastore.preferences)
 
+    // Haze (backdrop blur / glassmorphism)
+    implementation(libs.haze)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

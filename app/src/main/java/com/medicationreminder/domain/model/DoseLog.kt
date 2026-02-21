@@ -10,5 +10,6 @@ data class DoseLog(
     val takenAt: Long? = null,
     val status: DoseStatus = DoseStatus.PENDING,
     val medicationName: String = "",
-    val scheduleLabel: String = ""
+    val scheduleLabel: String = "",
+    val color: Int = 0
 )

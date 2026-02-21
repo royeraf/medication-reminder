@@ -4,14 +4,51 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#4F6AF5"
-        android:pathData="M54,20 C35.2,20 20,35.2 20,54 C20,72.8 35.2,88 54,88 C72.8,88 88,72.8 88,54 C88,35.2 72.8,20 54,20Z"/>
+
+    <!--
+        Pill (horizontal capsule)
+        Cap radius 11 · center y=35 · x from 26 to 82
+        Left cap center (37,35) · Right cap center (71,35)
+    -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,30 C54,30 54,30 54,30 L54,52 L66,52 C67.1,52 68,52.9 68,54 C68,55.1 67.1,56 66,56 L52,56 C50.9,56 50,55.1 50,54 L50,30 C50,28.9 50.9,28 52,28 C53.1,28 54,28.9 54,30Z"
-        android:strokeWidth="1"/>
+        android:pathData="M37,24 L71,24 A11,11 0 0 1 71,46 L37,46 A11,11 0 0 1 37,24 Z"/>
+
+    <!-- Pill divider — teal matches splash background, splits pill in two halves -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#008080"
+        android:strokeWidth="2"
+        android:pathData="M54,24 L54,46"/>
+
+    <!--
+        Clock face
+        Center (54,72) · radius 18 · spans x=36–72, y=54–90
+        Built from two clockwise semicircular arcs (left→right through top, right→left through bottom)
+    -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M40,68 C40,66.3 41.3,65 43,65 L65,65 C66.7,65 68,66.3 68,68 C68,69.7 66.7,71 65,71 L43,71 C41.3,71 40,69.7 40,68Z"/>
+        android:pathData="M36,72 A18,18 0 0 1 72,72 A18,18 0 0 1 36,72 Z"/>
+
+    <!-- Hour hand — ~10 o'clock: center (54,72) → (47,65) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#008080"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,72 L47,65"/>
+
+    <!-- Minute hand — ~2 o'clock: center (54,72) → (63,64) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#008080"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M54,72 L63,64"/>
+
+    <!-- Clock center dot -->
+    <path
+        android:fillColor="#008080"
+        android:pathData="M52.5,72 A1.5,1.5 0 0 1 55.5,72 A1.5,1.5 0 0 1 52.5,72 Z"/>
+
 </vector>

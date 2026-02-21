@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.medicationreminder.domain.model.DrugSearchResult
 import com.medicationreminder.domain.model.Medication
 import com.medicationreminder.domain.model.Schedule
+import com.medicationreminder.domain.repository.MedicationRepository
+import com.medicationreminder.domain.usecase.DeleteMedicationUseCase
 import com.medicationreminder.domain.usecase.SaveMedicationUseCase
 import com.medicationreminder.domain.usecase.SearchDrugsUseCase
 import com.medicationreminder.util.Resource
@@ -24,6 +26,7 @@ data class AddMedicationUiState(
     val selectedDrug: DrugSearchResult? = null,
 
     // Medication form
+    val medicationId: Long = 0L,
     val medicationName: String = "",
     val genericName: String = "",
     val dosageForm: String = "",
@@ -45,6 +48,8 @@ data class AddMedicationUiState(
 class AddMedicationViewModel @Inject constructor(
     private val searchDrugsUseCase: SearchDrugsUseCase,
     private val saveMedicationUseCase: SaveMedicationUseCase,
+    private val deleteMedicationUseCase: DeleteMedicationUseCase,
+    private val medicationRepository: MedicationRepository,
     private val alarmScheduler: AlarmScheduler,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -53,6 +58,35 @@ class AddMedicationViewModel @Inject constructor(
     val uiState: StateFlow<AddMedicationUiState> = _uiState.asStateFlow()
 
     private var searchJob: Job? = null
+
+    init {
+        val medicationId: Long? = savedStateHandle["medicationId"]
+        if (medicationId != null && medicationId != -1L) {
+            loadMedicationForEdit(medicationId)
+        }
+    }
+
+    private fun loadMedicationForEdit(id: Long) {
+        viewModelScope.launch {
+            val medication = medicationRepository.getMedicationById(id)
+            if (medication != null) {
+                val schedules = medicationRepository.getSchedulesForMedicationSync(id)
+                _uiState.update {
+                    it.copy(
+                        medicationId = medication.id,
+                        medicationName = medication.name,
+                        genericName = medication.genericName,
+                        dosageForm = medication.dosageForm,
+                        strength = medication.strength,
+                        instructions = medication.instructions,
+                        selectedColorIndex = medication.color,
+                        schedules = schedules,
+                        searchQuery = medication.name
+                    )
+                }
+            }
+        }
+    }
 
     fun onSearchQueryChange(query: String) {
         _uiState.update { it.copy(searchQuery = query, searchError = null) }
@@ -114,7 +148,7 @@ class AddMedicationViewModel @Inject constructor(
 
     fun addSchedule(hour: Int, minute: Int, label: String) {
         val schedule = Schedule(
-            medicationId = 0L, // will be set on save
+            medicationId = _uiState.value.medicationId,
             label = label,
             hour = hour,
             minute = minute
@@ -151,6 +185,7 @@ class AddMedicationViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             try {
                 val medication = Medication(
+                    id = state.medicationId,
                     rxcui = state.selectedDrug?.rxcui ?: "",
                     name = state.medicationName.trim(),
                     genericName = state.genericName.trim(),
@@ -162,19 +197,32 @@ class AddMedicationViewModel @Inject constructor(
                 )
                 val medicationId = saveMedicationUseCase(medication, state.schedules)
 
-                // Schedule alarms
-                val savedMedication = medication.copy(id = medicationId)
-                state.schedules.forEachIndexed { index, schedule ->
-                    alarmScheduler.scheduleAlarm(
-                        savedMedication,
-                        schedule.copy(medicationId = medicationId, id = index.toLong() + 1)
-                    )
-                }
-
                 _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(isSaving = false, errorMessage = "Failed to save: ${e.message}")
+                }
+            }
+        }
+    }
+
+    fun deleteMedication() {
+        val state = _uiState.value
+        if (state.medicationId == 0L) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+            try {
+                // Cancel every alarm before removing from DB
+                state.schedules.forEach { alarmScheduler.cancelAlarm(it) }
+                val medication = medicationRepository.getMedicationById(state.medicationId)
+                if (medication != null) {
+                    deleteMedicationUseCase(medication)
+                }
+                // Reuse saveSuccess to trigger back navigation
+                _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isSaving = false, errorMessage = "Failed to delete: ${e.message}")
                 }
             }
         }

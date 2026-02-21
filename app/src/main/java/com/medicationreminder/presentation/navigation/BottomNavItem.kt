@@ -3,10 +3,11 @@ package com.medicationreminder.presentation.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.medicationreminder.R
 
 data class BottomNavItem(
     val screen: Screen,
-    val label: String,
+    val labelResId: Int,
     val icon: ImageVector,
     val selectedIcon: ImageVector = icon
 )
@@ -14,25 +15,25 @@ data class BottomNavItem(
 val bottomNavItems = listOf(
     BottomNavItem(
         screen = Screen.Home,
-        label = "Home",
+        labelResId = R.string.nav_home,
         icon = Icons.Rounded.Home,
         selectedIcon = Icons.Rounded.Home
     ),
     BottomNavItem(
         screen = Screen.Medications,
-        label = "Medications",
+        labelResId = R.string.nav_medications,
         icon = Icons.Rounded.Medication,
         selectedIcon = Icons.Rounded.Medication
     ),
     BottomNavItem(
         screen = Screen.Reminders,
-        label = "Reminders",
+        labelResId = R.string.nav_reminders,
         icon = Icons.Rounded.Alarm,
         selectedIcon = Icons.Rounded.Alarm
     ),
     BottomNavItem(
         screen = Screen.Settings,
-        label = "Settings",
+        labelResId = R.string.nav_settings,
         icon = Icons.Rounded.Settings,
         selectedIcon = Icons.Rounded.Settings
     )

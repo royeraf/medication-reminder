@@ -3,6 +3,7 @@ package com.medicationreminder.presentation.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -47,27 +48,28 @@ fun MedicationCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Pill color indicator + icon
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(pillColor.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Medication,
-                    contentDescription = null,
-                    tint = pillColor,
-                    modifier = Modifier.size(28.dp)
-                )
-                // Color dot indicator
+            Box(modifier = Modifier.size(52.dp)) {
                 Box(
                     modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(pillColor)
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(pillColor.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Medication,
+                        contentDescription = null,
+                        tint = pillColor,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                // Color badge — outside clip so it shows at the corner
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
                         .align(Alignment.BottomEnd)
-                        .offset(x = 2.dp, y = 2.dp)
+                        .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                        .background(pillColor, CircleShape)
                 )
             }
 

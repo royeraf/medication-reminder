@@ -6,16 +6,23 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.media.AudioAttributes
 import android.media.RingtoneManager
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.medicationreminder.MainActivity
 import com.medicationreminder.R
+import com.medicationreminder.data.LanguageSetting
+import com.medicationreminder.data.SettingsDataStore
 import com.medicationreminder.domain.repository.MedicationRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -27,43 +34,80 @@ class AlarmReceiver : BroadcastReceiver() {
     @Inject
     lateinit var alarmScheduler: AlarmScheduler
 
+    @Inject
+    lateinit var settingsDataStore: SettingsDataStore
+
     override fun onReceive(context: Context, intent: Intent) {
+        val result = goAsync()
         when (intent.action) {
-            ACTION_MEDICATION_ALARM -> handleMedicationAlarm(context, intent)
+            ACTION_MEDICATION_ALARM -> handleMedicationAlarm(context, intent, result)
             Intent.ACTION_BOOT_COMPLETED,
-            Intent.ACTION_MY_PACKAGE_REPLACED -> rescheduleAllAlarms(context)
+            Intent.ACTION_MY_PACKAGE_REPLACED -> rescheduleAllAlarms(context, result)
+            else -> result.finish()
         }
     }
 
-    private fun handleMedicationAlarm(context: Context, intent: Intent) {
+    private fun handleMedicationAlarm(context: Context, intent: Intent, result: PendingResult) {
         val medicationId = intent.getLongExtra(EXTRA_MEDICATION_ID, -1L)
         val medicationName = intent.getStringExtra(EXTRA_MEDICATION_NAME) ?: "Medication"
         val scheduleId = intent.getLongExtra(EXTRA_SCHEDULE_ID, -1L)
         val scheduleLabel = intent.getStringExtra(EXTRA_SCHEDULE_LABEL) ?: ""
 
-        // Show notification
-        showNotification(context, medicationId, medicationName, scheduleLabel)
-
-        // Re-schedule for the next day
         CoroutineScope(Dispatchers.IO).launch {
-            val medication = medicationRepository.getMedicationById(medicationId) ?: return@launch
-            val schedules = medicationRepository.getSchedulesForMedicationSync(medicationId)
-            val schedule = schedules.find { it.id == scheduleId } ?: return@launch
+            try {
+                // Build a locale-aware context so notification strings respect the saved language
+                val languageSetting = settingsDataStore.languageSetting.first()
+                val localizedContext = localizedContext(context, languageSetting)
 
-            if (schedule.isEnabled) {
-                alarmScheduler.scheduleAlarm(medication, schedule)
+                showNotification(localizedContext, medicationId, medicationName, scheduleLabel)
+
+                // Re-schedule for the next day
+                val medication = medicationRepository.getMedicationById(medicationId)
+                if (medication != null) {
+                    val schedules = medicationRepository.getSchedulesForMedicationSync(medicationId)
+                    val schedule = schedules.find { it.id == scheduleId }
+                    if (schedule != null && schedule.isEnabled) {
+                        alarmScheduler.scheduleAlarm(medication, schedule)
+                    }
+                }
+            } finally {
+                result.finish()
             }
         }
     }
 
-    private fun rescheduleAllAlarms(context: Context) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val schedules = medicationRepository.getAllEnabledSchedules()
-            schedules.forEach { schedule ->
-                val medication = medicationRepository.getMedicationById(schedule.medicationId)
-                if (medication != null && medication.isActive) {
-                    alarmScheduler.scheduleAlarm(medication, schedule)
+    private fun localizedContext(context: Context, setting: LanguageSetting): Context {
+        val locale = when (setting) {
+            LanguageSetting.SYSTEM -> {
+                // Use the real device locale, not Locale.getDefault() which can be
+                // overridden by the in-app language switcher.
+                val systemConfig = Resources.getSystem().configuration
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    systemConfig.locales[0]
+                } else {
+                    @Suppress("DEPRECATION")
+                    systemConfig.locale
                 }
+            }
+            else -> Locale(setting.code)
+        }
+        val config = Configuration(context.resources.configuration)
+        config.setLocale(locale)
+        return context.createConfigurationContext(config)
+    }
+
+    private fun rescheduleAllAlarms(context: Context, result: PendingResult) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val schedules = medicationRepository.getAllEnabledSchedules()
+                schedules.forEach { schedule ->
+                    val medication = medicationRepository.getMedicationById(schedule.medicationId)
+                    if (medication != null && medication.isActive) {
+                        alarmScheduler.scheduleAlarm(medication, schedule)
+                    }
+                }
+            } finally {
+                result.finish()
             }
         }
     }
@@ -90,19 +134,25 @@ class AlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val title = context.getString(R.string.notification_title, medicationName)
         val body = if (scheduleLabel.isNotBlank()) {
-            "$scheduleLabel dose – tap to confirm"
+            context.getString(R.string.notification_body_with_label, scheduleLabel)
         } else {
-            "Time to take your medication"
+            context.getString(R.string.notification_body_default)
         }
 
         val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("💊 $medicationName")
+            .setContentTitle(title)
             .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText(body)
+                    .setBigContentTitle(title)
+                    .setSummaryText(medicationName)
+            )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
