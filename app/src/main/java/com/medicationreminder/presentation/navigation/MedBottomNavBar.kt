@@ -1,21 +1,30 @@
 package com.medicationreminder.presentation.navigation
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
@@ -28,15 +37,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.medicationreminder.presentation.theme.MedicationReminderTheme
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeChild
 
 @Composable
 fun MedBottomNavBar(
     navController: NavController,
-    hazeState: HazeState,
     modifier: Modifier = Modifier
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -44,7 +48,6 @@ fun MedBottomNavBar(
 
     MedBottomNavBarContent(
         currentRoute = currentRoute,
-        hazeState = hazeState,
         modifier = modifier,
         onNavItemClick = { item ->
             navController.navigate(item.screen.route) {
@@ -61,71 +64,36 @@ fun MedBottomNavBar(
 @Composable
 private fun MedBottomNavBarContent(
     currentRoute: String?,
-    hazeState: HazeState,
     modifier: Modifier = Modifier,
     onNavItemClick: (BottomNavItem) -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
-
-    // Frosted glass style — very high opacity in light mode for maximum contrast
-    val hazeStyle = HazeStyle(
-        blurRadius = 30.dp,
-        noiseFactor = 0.05f,
-        backgroundColor = MaterialTheme.colorScheme.background,
-        tints = listOf(
-            HazeTint(
-                if (isDark) Color(0xFF1C1C1E).copy(alpha = 0.70f)
-                else Color.White.copy(alpha = 0.92f)
-            )
-        )
-    )
-
-    // Very subtle shimmer
-    val shimmer = if (isDark) Color.Transparent
-    else Color.White.copy(alpha = 0.15f)
-
-    val shadowColor = if (isDark) Color.Black.copy(alpha = 0.45f)
-    else Color.Black.copy(alpha = 0.12f)
+    val navBarColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    val shadowColor = Color.Black.copy(alpha = 0.18f)
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 50.dp, vertical = 10.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(
-                    elevation = if (isDark) 24.dp else 14.dp,
+                    elevation = 15.dp,
                     shape = CircleShape,
                     clip = false,
                     ambientColor = shadowColor,
                     spotColor = shadowColor
                 )
                 .clip(CircleShape)
-                .hazeChild(state = hazeState, shape = CircleShape, style = hazeStyle)
+                .background(color = navBarColor, shape = CircleShape)
         ) {
-            // Top shimmer overlay
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colorStops = arrayOf(
-                                0.0f to shimmer,
-                                0.45f to Color.Transparent
-                            )
-                        )
-                    )
-            )
-
-            // Navigation items
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                    .padding(all = 4.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -156,76 +124,111 @@ private fun BottomNavItemView(
 ) {
     val label = stringResource(id = item.labelResId)
 
-    val backgroundAlpha by animateFloatAsState(
-        targetValue = if (isSelected) 1f else 0f,
-        animationSpec = tween(durationMillis = 300),
-        label = "backgroundAlpha"
+    // Animatable garantiza que .value se lea en el draw layer → se redibuja en cada frame
+    val pillWidthAnim = remember { Animatable(if (isSelected) 1f else 0f) }
+    val pillHeightAnim = remember { Animatable(if (isSelected) 1f else 0.7f) }
+    LaunchedEffect(isSelected) {
+        if (isSelected) {
+            pillWidthAnim.animateTo(1f, tween(350, easing = FastOutSlowInEasing))
+        } else {
+            pillWidthAnim.animateTo(0f, tween(200, easing = FastOutSlowInEasing))
+        }
+    }
+    LaunchedEffect(isSelected) {
+        if (isSelected) {
+            pillHeightAnim.animateTo(1f, tween(250, easing = FastOutSlowInEasing))
+        } else {
+            pillHeightAnim.animateTo(0.7f, tween(150, easing = FastOutSlowInEasing))
+        }
+    }
+    val iconScale by animateFloatAsState(
+        targetValue = if (isSelected) 1.2f else 1f,
+        animationSpec = spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMediumLow),
+        label = "iconScale"
     )
-    val backgroundScale by animateFloatAsState(
-        targetValue = if (isSelected) 1f else 0.6f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium),
-        label = "backgroundScale"
+    val iconOffsetY by animateFloatAsState(
+        targetValue = if (isSelected) -2f else 0f,
+        animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium),
+        label = "iconOffsetY"
     )
-
-    val isDark = isSystemInDarkTheme()
-
-    // In light mode the nav bar is near-white (frosted glass at 0.92 opacity).
-    // primary (#008080) on white has ~3.7:1 contrast — less than inactive tabs
-    // which use onSurface at 40% (~5.5:1). Fix: use onPrimaryContainer (near-black
-    // teal) so the active item is always the darkest, most readable element.
     val contentColor by animateColorAsState(
-        targetValue = when {
-            isSelected -> if (isDark) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onPrimaryContainer
-            isDark     -> Color.White.copy(alpha = 0.50f)
-            else       -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.40f)
-        },
+        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                      else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = tween(250),
         label = "contentColor"
     )
 
-    // Pill color: in light mode use the solid primaryContainer surface so the
-    // pill is clearly visible instead of a near-invisible 16%-opacity ghost.
-    val pillColor = if (isDark)
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-    else
-        MaterialTheme.colorScheme.primaryContainer
+    // Wobble rotation on selection
+    val iconRotation = remember { Animatable(0f) }
+    LaunchedEffect(isSelected) {
+        if (isSelected) {
+            iconRotation.animateTo(
+                targetValue = 0f,
+                animationSpec = keyframes {
+                    durationMillis = 400
+                    -14f at 80
+                    10f at 180
+                    -5f at 270
+                    0f at 400
+                }
+            )
+        }
+    }
+
+    val pillColor = MaterialTheme.colorScheme.primaryContainer
 
     Box(
         modifier = modifier
-            .height(60.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick
-            ),
+            )
+            .drawBehind {
+                // Leer .value aquí suscribe el draw layer directamente al Animatable
+                val pillW = size.width * pillWidthAnim.value
+                val pillH = size.height * pillHeightAnim.value
+                val left = (size.width - pillW) / 2f
+                val top = (size.height - pillH) / 2f
+                drawRoundRect(
+                    color = pillColor,
+                    topLeft = Offset(left, top),
+                    size = Size(pillW, pillH),
+                    cornerRadius = CornerRadius(pillH / 2f)
+                )
+            },
         contentAlignment = Alignment.Center
     ) {
-        // Pill background: sized consistently regardless of content length
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .padding(horizontal = 4.dp)
-                .graphicsLayer {
-                    alpha = backgroundAlpha
-                    scaleX = backgroundScale
-                    scaleY = backgroundScale
-                }
-                .background(color = pillColor, shape = CircleShape)
-        )
-
-        // Content: centered in the item area
+        // Content: icon + label with symmetric padding
         Column(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = if (isSelected) item.selectedIcon else item.icon,
-                contentDescription = label,
-                tint = contentColor,
-                modifier = Modifier.size(22.dp)
-            )
+            AnimatedContent(
+                targetState = isSelected,
+                transitionSpec = {
+                    (scaleIn(spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium)) +
+                     fadeIn(tween(180))).togetherWith(
+                        scaleOut(tween(120)) + fadeOut(tween(100))
+                    )
+                },
+                label = "iconTransition"
+            ) { selected ->
+                Icon(
+                    imageVector = if (selected) item.selectedIcon else item.icon,
+                    contentDescription = label,
+                    tint = contentColor,
+                    modifier = Modifier
+                        .size(22.dp)
+                        .graphicsLayer {
+                            scaleX = iconScale
+                            scaleY = iconScale
+                            translationY = iconOffsetY
+                            rotationZ = iconRotation.value
+                        }
+                )
+            }
 
             Spacer(modifier = Modifier.height(2.dp))
 
@@ -251,7 +254,6 @@ fun MedBottomNavBarPreview() {
         Box(modifier = Modifier.background(MaterialTheme.colorScheme.background).padding(20.dp)) {
             MedBottomNavBarContent(
                 currentRoute = Screen.Home.route,
-                hazeState = remember { HazeState() },
                 onNavItemClick = {}
             )
         }
@@ -265,7 +267,6 @@ fun MedBottomNavBarDarkPreview() {
         Box(modifier = Modifier.background(MaterialTheme.colorScheme.background).padding(20.dp)) {
             MedBottomNavBarContent(
                 currentRoute = Screen.Home.route,
-                hazeState = remember { HazeState() },
                 onNavItemClick = {}
             )
         }

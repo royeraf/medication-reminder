@@ -54,7 +54,7 @@ fun RemindersScreen(
 }
 
 @Composable
-internal fun RemindersScreenContent(
+fun RemindersScreenContent(
     uiState: RemindersUiState,
     onNavigateToAddMedication: () -> Unit,
     onToggleSchedule: (Schedule, Boolean) -> Unit

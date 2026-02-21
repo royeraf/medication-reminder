@@ -11,12 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -31,6 +28,17 @@ import com.medicationreminder.presentation.screens.settings.SettingsScreen
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.medicationreminder.presentation.theme.MedicationReminderTheme
+import com.medicationreminder.presentation.screens.home.HomeScreenContent
+import com.medicationreminder.presentation.screens.home.HomeUiState
+import com.medicationreminder.presentation.screens.medications.MedicationsScreenContent
+import com.medicationreminder.presentation.screens.medications.MedicationsUiState
+import com.medicationreminder.presentation.screens.reminders.RemindersScreenContent
+import com.medicationreminder.presentation.screens.reminders.RemindersUiState
+import com.medicationreminder.presentation.screens.settings.SettingsScreenContent
+import com.medicationreminder.data.ThemeSetting
+import com.medicationreminder.data.LanguageSetting
+import com.medicationreminder.presentation.screens.medications.AddMedicationScreenContent
+import com.medicationreminder.presentation.screens.medications.AddMedicationUiState
 
 // Routes that live at the same level in the bottom nav — they cross-fade instead of sliding.
 private val tabRoutes = setOf(
@@ -44,37 +52,20 @@ private val tabRoutes = setOf(
 fun AppNavigation(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val hazeState = remember { HazeState() }
 
     Scaffold(
         containerColor = Color.Transparent
     ) { innerPadding ->
-        // Outer Box fills the full screen — nav bar is an overlay so it never
-        // changes the content area size (eliminates the startup resize caused by
-        // the Scaffold re-measuring the bottomBar when window insets resolve).
         Box(modifier = Modifier.fillMaxSize()) {
-            // haze() marks this area as the source to blur — the nav bar reads from it
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = innerPadding.calculateTopPadding())
-                    .haze(hazeState)
             ) {
             NavHost(
                 navController = navController,
                 startDestination = Screen.Home.route,
                 modifier = Modifier.fillMaxSize(),
-                // ── Tab switch ────────────────────────────────────────────────
-                // Tabs are peers; a horizontal slide implies hierarchy that
-                // doesn't exist.  A quick cross-fade feels natural and avoids
-                // the disorientation of sliding in the "wrong" direction.
-                //
-                // ── Stack push/pop ────────────────────────────────────────────
-                // The incoming screen slides the full width while the outgoing
-                // screen moves only ¼ of the way — classic parallax depth cue.
-                // FastOutSlowInEasing (decelerate) on enter and
-                // FastOutLinearInEasing (accelerate) on exit match the Material
-                // motion spec and feel significantly more natural than linear.
                 enterTransition = {
                     val isTabSwitch = initialState.destination.route in tabRoutes &&
                             targetState.destination.route in tabRoutes
@@ -99,8 +90,6 @@ fun AppNavigation(navController: NavHostController) {
                         ) + fadeOut(tween(200, easing = LinearEasing))
                     }
                 },
-                // Pop: user is going back, so reverse the direction.
-                // Slightly shorter duration feels more responsive.
                 popEnterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { -it / 4 },
@@ -156,26 +145,134 @@ fun AppNavigation(navController: NavHostController) {
                 )
             }
             }
-            } // haze Box
+            }
 
-            // Nav bar as full-screen overlay — positioned at the bottom, never
-            // affects the content area size regardless of window inset changes.
             val bottomNavRoutes = bottomNavItems.map { it.screen.route }
             if (currentRoute in bottomNavRoutes) {
                 MedBottomNavBar(
                     navController = navController,
-                    hazeState = hazeState,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
-        } // outer Box
+        }
     }
 }
 
-@Preview
+@Composable
+fun AppNavigationContent(navController: NavHostController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    Scaffold(
+        containerColor = Color.Transparent
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
+            ) {
+                NavHost(
+                    navController = navController,
+                    startDestination = Screen.Home.route,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    composable(Screen.Home.route) {
+                        HomeScreenContent(
+                            uiState = HomeUiState(greeting = "Hola"),
+                            onTakeDose = {},
+                            onRefresh = {}
+                        )
+                    }
+
+                    composable(Screen.Medications.route) {
+                        MedicationsScreenContent(
+                            uiState = MedicationsUiState(),
+                            filteredMedications = emptyList(),
+                            onNavigateToAddMedication = {},
+                            onNavigateToMedicationDetail = {},
+                            onSearchQueryChange = {},
+                            onClearDeletedMedication = {}
+                        )
+                    }
+
+                    composable(Screen.Reminders.route) {
+                        RemindersScreenContent(
+                            uiState = RemindersUiState(),
+                            onNavigateToAddMedication = {},
+                            onToggleSchedule = { _, _ -> }
+                        )
+                    }
+
+                    composable(Screen.Settings.route) {
+                        SettingsScreenContent(
+                            themeSetting = ThemeSetting.SYSTEM,
+                            languageSetting = LanguageSetting.SYSTEM,
+                            onThemeChanged = {},
+                            onLanguageChanged = {}
+                        )
+                    }
+
+                    composable(Screen.AddMedication.route) {
+                        AddMedicationScreenContent(
+                            uiState = AddMedicationUiState(),
+                            onNavigateBack = {},
+                            onSaveMedication = {},
+                            onDeleteMedication = {},
+                            onSearchQueryChange = {},
+                            onDrugSelected = {},
+                            onMedicationNameChange = {},
+                            onStrengthChange = {},
+                            onDosageFormChange = {},
+                            onInstructionsChange = {},
+                            onColorSelected = {},
+                            onAddSchedule = { _, _, _ -> },
+                            onUpdateSchedule = { _, _, _, _ -> },
+                            onRemoveSchedule = {},
+                            onClearError = {}
+                        )
+                    }
+
+                    composable(
+                        route = Screen.MedicationDetail.route,
+                        arguments = listOf(navArgument("medicationId") { type = NavType.LongType })
+                    ) {
+                        AddMedicationScreenContent(
+                            uiState = AddMedicationUiState(),
+                            onNavigateBack = {},
+                            onSaveMedication = {},
+                            onDeleteMedication = {},
+                            onSearchQueryChange = {},
+                            onDrugSelected = {},
+                            onMedicationNameChange = {},
+                            onStrengthChange = {},
+                            onDosageFormChange = {},
+                            onInstructionsChange = {},
+                            onColorSelected = {},
+                            onAddSchedule = { _, _, _ -> },
+                            onUpdateSchedule = { _, _, _, _ -> },
+                            onRemoveSchedule = {},
+                            onClearError = {}
+                        )
+                    }
+                }
+            }
+
+            val bottomNavRoutes = bottomNavItems.map { it.screen.route }
+            if (currentRoute in bottomNavRoutes) {
+                MedBottomNavBar(
+                    navController = navController,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
 @Composable
 fun AppNavigationPreview() {
     MedicationReminderTheme {
-        AppNavigation(navController = rememberNavController())
+        AppNavigationContent(navController = rememberNavController())
     }
 }

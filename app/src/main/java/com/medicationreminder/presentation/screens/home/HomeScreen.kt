@@ -57,7 +57,7 @@ fun HomeScreen(
 }
 
 @Composable
-internal fun HomeScreenContent(
+fun HomeScreenContent(
     uiState: HomeUiState,
     onTakeDose: (DoseLog) -> Unit,
     onRefresh: () -> Unit

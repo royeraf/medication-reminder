@@ -48,7 +48,7 @@ fun MedicationsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun MedicationsScreenContent(
+fun MedicationsScreenContent(
     uiState: MedicationsUiState,
     filteredMedications: List<Medication>,
     onNavigateToAddMedication: () -> Unit,
