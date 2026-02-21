@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,7 +56,11 @@ fun AppNavigation(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val backdrop = rememberLayerBackdrop()
+    val bgColor = MaterialTheme.colorScheme.background
+    val backdrop = rememberLayerBackdrop {
+        drawRect(bgColor)
+        drawContent()
+    }
 
     Scaffold(
         containerColor = Color.Transparent
@@ -169,7 +174,11 @@ fun AppNavigationContent(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val backdrop = rememberLayerBackdrop()
+    val bgColor = MaterialTheme.colorScheme.background
+    val backdrop = rememberLayerBackdrop {
+        drawRect(bgColor)
+        drawContent()
+    }
 
     Scaffold(
         containerColor = Color.Transparent

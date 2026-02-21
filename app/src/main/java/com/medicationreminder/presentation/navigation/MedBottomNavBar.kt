@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,11 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
@@ -79,37 +76,18 @@ private fun MedBottomNavBarContent(
     val isDark = isSystemInDarkTheme()
     val tealColor = MaterialTheme.colorScheme.primary
 
-    val borderBrush = Brush.verticalGradient(
-        colors = listOf(
-            Color.White.copy(alpha = 0.65f),
-            Color.White.copy(alpha = 0.05f)
-        )
-    )
-    val darkGlassBrush = Brush.verticalGradient(
-        colors = listOf(
-            tealColor.copy(alpha = 0.82f),
-            tealColor.copy(alpha = 0.62f)
-        )
-    )
-    val shadowColor = Color.Black.copy(alpha = 0.30f)
+    val surfaceColor = if (isDark) tealColor.copy(alpha = 0.25f) else tealColor.copy(alpha = 0.18f)
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 50.dp, vertical = 10.dp),
+            .padding(horizontal = 60.dp, vertical = 10.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(
-                    elevation = 24.dp,
-                    shape = CircleShape,
-                    clip = false,
-                    ambientColor = shadowColor,
-                    spotColor = shadowColor
-                )
                 .clip(CircleShape)
                 .drawBackdrop(
                     backdrop = backdrop,
@@ -118,15 +96,12 @@ private fun MedBottomNavBarContent(
                         vibrancy()
                         blur(22.dp.toPx())
                     },
+                    highlight = null,
+                    shadow = null,
                     onDrawSurface = {
-                        if (isDark) {
-                            drawRect(brush = darkGlassBrush)
-                        } else {
-                            drawRect(tealColor.copy(alpha = 0.22f))
-                        }
+                        drawRect(surfaceColor)
                     }
                 )
-                .border(width = 1.dp, brush = borderBrush, shape = CircleShape)
         ) {
             Row(
                 modifier = Modifier
@@ -213,7 +188,7 @@ private fun BottomNavItemView(
         }
     }
 
-    val pillColor = MaterialTheme.colorScheme.primaryContainer
+    val pillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
 
     Box(
         modifier = modifier
@@ -239,7 +214,7 @@ private fun BottomNavItemView(
     ) {
         // Content: icon + label with symmetric padding
         Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
