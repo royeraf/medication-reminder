@@ -65,7 +65,7 @@ internal fun SettingsScreenContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)),
         contentPadding = PaddingValues(bottom = 100.dp)
     ) {
         item {

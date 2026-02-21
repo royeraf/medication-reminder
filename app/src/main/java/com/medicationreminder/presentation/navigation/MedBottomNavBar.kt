@@ -9,12 +9,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
@@ -36,11 +37,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.kyant.backdrop.backdrops.LayerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.vibrancy
 import com.medicationreminder.presentation.theme.MedicationReminderTheme
 
 @Composable
 fun MedBottomNavBar(
     navController: NavController,
+    backdrop: LayerBackdrop,
     modifier: Modifier = Modifier
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -48,6 +55,7 @@ fun MedBottomNavBar(
 
     MedBottomNavBarContent(
         currentRoute = currentRoute,
+        backdrop = backdrop,
         modifier = modifier,
         onNavItemClick = { item ->
             navController.navigate(item.screen.route) {
@@ -64,11 +72,26 @@ fun MedBottomNavBar(
 @Composable
 private fun MedBottomNavBarContent(
     currentRoute: String?,
+    backdrop: LayerBackdrop,
     modifier: Modifier = Modifier,
     onNavItemClick: (BottomNavItem) -> Unit
 ) {
-    val navBarColor = MaterialTheme.colorScheme.surfaceContainerHigh
-    val shadowColor = Color.Black.copy(alpha = 0.18f)
+    val isDark = isSystemInDarkTheme()
+    val tealColor = MaterialTheme.colorScheme.primary
+
+    val borderBrush = Brush.verticalGradient(
+        colors = listOf(
+            Color.White.copy(alpha = 0.65f),
+            Color.White.copy(alpha = 0.05f)
+        )
+    )
+    val darkGlassBrush = Brush.verticalGradient(
+        colors = listOf(
+            tealColor.copy(alpha = 0.82f),
+            tealColor.copy(alpha = 0.62f)
+        )
+    )
+    val shadowColor = Color.Black.copy(alpha = 0.30f)
 
     Box(
         modifier = modifier
@@ -81,14 +104,29 @@ private fun MedBottomNavBarContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(
-                    elevation = 15.dp,
+                    elevation = 24.dp,
                     shape = CircleShape,
                     clip = false,
                     ambientColor = shadowColor,
                     spotColor = shadowColor
                 )
                 .clip(CircleShape)
-                .background(color = navBarColor, shape = CircleShape)
+                .drawBackdrop(
+                    backdrop = backdrop,
+                    shape = { CircleShape },
+                    effects = {
+                        vibrancy()
+                        blur(22.dp.toPx())
+                    },
+                    onDrawSurface = {
+                        if (isDark) {
+                            drawRect(brush = darkGlassBrush)
+                        } else {
+                            drawRect(tealColor.copy(alpha = 0.22f))
+                        }
+                    }
+                )
+                .border(width = 1.dp, brush = borderBrush, shape = CircleShape)
         ) {
             Row(
                 modifier = Modifier
@@ -201,7 +239,7 @@ private fun BottomNavItemView(
     ) {
         // Content: icon + label with symmetric padding
         Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -251,12 +289,11 @@ private fun BottomNavItemView(
 @Composable
 fun MedBottomNavBarPreview() {
     MedicationReminderTheme {
-        Box(modifier = Modifier.background(MaterialTheme.colorScheme.background).padding(20.dp)) {
-            MedBottomNavBarContent(
-                currentRoute = Screen.Home.route,
-                onNavItemClick = {}
-            )
-        }
+        MedBottomNavBarContent(
+            currentRoute = Screen.Home.route,
+            backdrop = rememberLayerBackdrop(),
+            onNavItemClick = {}
+        )
     }
 }
 
@@ -264,11 +301,10 @@ fun MedBottomNavBarPreview() {
 @Composable
 fun MedBottomNavBarDarkPreview() {
     MedicationReminderTheme {
-        Box(modifier = Modifier.background(MaterialTheme.colorScheme.background).padding(20.dp)) {
-            MedBottomNavBarContent(
-                currentRoute = Screen.Home.route,
-                onNavItemClick = {}
-            )
-        }
+        MedBottomNavBarContent(
+            currentRoute = Screen.Home.route,
+            backdrop = rememberLayerBackdrop(),
+            onNavItemClick = {}
+        )
     }
 }

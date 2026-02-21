@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.medicationreminder"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.medicationreminder"
@@ -104,8 +104,8 @@ dependencies {
     // DataStore
     implementation(libs.datastore.preferences)
 
-    // Haze (backdrop blur / glassmorphism)
-    implementation(libs.haze)
+    // Liquid Glass (backdrop blur / glassmorphism)
+    implementation(libs.backdrop)
 
     // Testing
     testImplementation(libs.junit)

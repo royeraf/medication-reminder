@@ -22,4 +22,13 @@ object MedicationColors {
     )
 
     fun getColor(index: Int): Color = palette[index % palette.size]
+
+    /** Returns the color as an ARGB Int for use outside of Compose (e.g. notifications). */
+    fun getColorArgb(index: Int): Int {
+        val color = getColor(index)
+        val r = (color.red * 255).toInt()
+        val g = (color.green * 255).toInt()
+        val b = (color.blue * 255).toInt()
+        return android.graphics.Color.rgb(r, g, b)
+    }
 }

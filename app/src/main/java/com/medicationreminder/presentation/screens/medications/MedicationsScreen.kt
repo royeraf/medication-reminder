@@ -1,7 +1,8 @@
 package com.medicationreminder.presentation.screens.medications
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -58,19 +59,6 @@ fun MedicationsScreenContent(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Background color animation
-    var startColorAnimation by remember { mutableStateOf(false) }
-    val animatedBgColor by animateColorAsState(
-        targetValue = if (startColorAnimation) MaterialTheme.colorScheme.background 
-                      else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
-        animationSpec = tween(durationMillis = 1000),
-        label = "backgroundColorAnimation"
-    )
-
-    LaunchedEffect(Unit) {
-        startColorAnimation = true
-    }
-
     // Show snackbar when medication deleted
     val deletedMessage = stringResource(R.string.medications_deleted, uiState.deletedMedication?.name ?: "")
     LaunchedEffect(uiState.deletedMedication) {
@@ -90,7 +78,7 @@ fun MedicationsScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(animatedBgColor)
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
                 .padding(innerPadding)
         ) {
             // Top bar with integrated Add Button

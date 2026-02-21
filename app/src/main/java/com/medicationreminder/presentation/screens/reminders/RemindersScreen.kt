@@ -62,7 +62,7 @@ fun RemindersScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
     ) {
         // Top bar
         Column(

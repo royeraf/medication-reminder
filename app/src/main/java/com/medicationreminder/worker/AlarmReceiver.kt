@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import com.medicationreminder.MainActivity
 import com.medicationreminder.R
 import com.medicationreminder.data.LanguageSetting
+import com.medicationreminder.presentation.components.MedicationColors
 import com.medicationreminder.data.SettingsDataStore
 import com.medicationreminder.domain.repository.MedicationRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,6 +51,7 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun handleMedicationAlarm(context: Context, intent: Intent, result: PendingResult) {
         val medicationId = intent.getLongExtra(EXTRA_MEDICATION_ID, -1L)
         val medicationName = intent.getStringExtra(EXTRA_MEDICATION_NAME) ?: "Medication"
+        val medicationColorIndex = intent.getIntExtra(EXTRA_MEDICATION_COLOR, 0)
         val scheduleId = intent.getLongExtra(EXTRA_SCHEDULE_ID, -1L)
         val scheduleLabel = intent.getStringExtra(EXTRA_SCHEDULE_LABEL) ?: ""
 
@@ -59,7 +61,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 val languageSetting = settingsDataStore.languageSetting.first()
                 val localizedContext = localizedContext(context, languageSetting)
 
-                showNotification(localizedContext, medicationId, medicationName, scheduleLabel)
+                showNotification(localizedContext, medicationId, medicationName, scheduleLabel, medicationColorIndex)
 
                 // Re-schedule for the next day
                 val medication = medicationRepository.getMedicationById(medicationId)
@@ -116,7 +118,8 @@ class AlarmReceiver : BroadcastReceiver() {
         context: Context,
         medicationId: Long,
         medicationName: String,
-        scheduleLabel: String
+        scheduleLabel: String,
+        colorIndex: Int = 0
     ) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -145,6 +148,8 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(MedicationColors.getColorArgb(colorIndex))
+            .setColorized(true)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(
@@ -189,6 +194,7 @@ class AlarmReceiver : BroadcastReceiver() {
         const val ACTION_MEDICATION_ALARM = "com.medicationreminder.MEDICATION_ALARM"
         const val EXTRA_MEDICATION_ID = "medication_id"
         const val EXTRA_MEDICATION_NAME = "medication_name"
+        const val EXTRA_MEDICATION_COLOR = "medication_color"
         const val EXTRA_SCHEDULE_ID = "schedule_id"
         const val EXTRA_SCHEDULE_LABEL = "schedule_label"
         const val EXTRA_REQUEST_CODE = "request_code"

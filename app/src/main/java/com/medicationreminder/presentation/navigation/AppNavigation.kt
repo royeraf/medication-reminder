@@ -14,6 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -53,6 +55,8 @@ fun AppNavigation(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val backdrop = rememberLayerBackdrop()
+
     Scaffold(
         containerColor = Color.Transparent
     ) { innerPadding ->
@@ -60,6 +64,7 @@ fun AppNavigation(navController: NavHostController) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .layerBackdrop(backdrop)
                     .padding(top = innerPadding.calculateTopPadding())
             ) {
             NavHost(
@@ -151,6 +156,7 @@ fun AppNavigation(navController: NavHostController) {
             if (currentRoute in bottomNavRoutes) {
                 MedBottomNavBar(
                     navController = navController,
+                    backdrop = backdrop,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
@@ -163,6 +169,8 @@ fun AppNavigationContent(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val backdrop = rememberLayerBackdrop()
+
     Scaffold(
         containerColor = Color.Transparent
     ) { innerPadding ->
@@ -170,6 +178,7 @@ fun AppNavigationContent(navController: NavHostController) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .layerBackdrop(backdrop)
                     .padding(top = innerPadding.calculateTopPadding())
             ) {
                 NavHost(
@@ -262,6 +271,7 @@ fun AppNavigationContent(navController: NavHostController) {
             if (currentRoute in bottomNavRoutes) {
                 MedBottomNavBar(
                     navController = navController,
+                    backdrop = backdrop,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }

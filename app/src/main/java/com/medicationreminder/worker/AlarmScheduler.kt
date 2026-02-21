@@ -81,6 +81,7 @@ class AlarmScheduler @Inject constructor(
             action = AlarmReceiver.ACTION_MEDICATION_ALARM
             putExtra(AlarmReceiver.EXTRA_MEDICATION_ID, medication.id)
             putExtra(AlarmReceiver.EXTRA_MEDICATION_NAME, medication.name)
+            putExtra(AlarmReceiver.EXTRA_MEDICATION_COLOR, medication.color)
             putExtra(AlarmReceiver.EXTRA_SCHEDULE_ID, schedule.id)
             putExtra(AlarmReceiver.EXTRA_SCHEDULE_LABEL, schedule.label)
             putExtra(AlarmReceiver.EXTRA_REQUEST_CODE, schedule.alarmRequestCode)
