@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MedReminder</string>
+    <string name="notification_channel_id">medication_reminders</string>
+    <string name="notification_channel_name">Recordatorios de Medicamentos</string>
+    <string name="notification_channel_desc">Recordatorios para tomar sus medicamentos a tiempo</string>
+
+    <!-- Navegación -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_medications">Medicinas</string>
+    <string name="nav_reminders">Alarmas</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Pantalla de Inicio -->
+    <string name="greeting_morning">Buenos días</string>
+    <string name="greeting_afternoon">Buenas tardes</string>
+    <string name="greeting_evening">Buenas noches</string>
+    <string name="greeting_night">Buenas noches</string>
+    <string name="home_title">Tus medicamentos</string>
+    <string name="home_today_schedule">Horario de hoy</string>
+    <string name="home_today_progress">Progreso de hoy</string>
+    <string name="home_no_medications_today">No hay medicamentos programados para hoy</string>
+    <string name="home_all_taken">¡Todas las dosis tomadas! ¡Buen trabajo!</string>
+    <string name="home_doses_remaining">Faltan %d dosis</string>
+    <string name="home_empty_title">No hay dosis hoy</string>
+    <string name="home_empty_desc">Añade medicamentos y configura\ntu horario de recordatorios</string>
+    <string name="home_notifications_desc">Notificaciones</string>
+
+    <!-- Pantalla de Medicamentos -->
+    <string name="medications_title">Medicamentos</string>
+    <string name="medications_count_one">1 medicamento</string>
+    <string name="medications_count_plural">%d medicamentos</string>
+    <string name="medications_add">Añadir Medicamento</string>
+    <string name="medications_deleted">%s eliminado</string>
+    <string name="medications_search_placeholder">Buscar medicamentos…</string>
+    <string name="medications_empty_title">Aún no hay medicamentos</string>
+    <string name="medications_empty_desc">Toca + para añadir tu primer medicamento</string>
+    <string name="medications_no_results_title">No se encontraron resultados</string>
+    <string name="medications_no_results_desc">Prueba con un término de búsqueda diferente</string>
+
+    <!-- Pantalla de Añadir/Editar Medicamento -->
+    <string name="medication_add_title">Añadir Medicamento</string>
+    <string name="medication_edit_title">Editar Medicamento</string>
+    <string name="medication_save">Guardar Medicamento</string>
+    <string name="medication_update">Actualizar Medicamento</string>
+    <string name="medication_search_section">Buscar Medicamento</string>
+    <string name="medication_search_hint">Buscar en RxNorm (ej. Ibuprofeno)…</string>
+    <string name="medication_details_section">Detalles del Medicamento</string>
+    <string name="medication_name_label">Nombre *</string>
+    <string name="medication_strength_label">Concentración</string>
+    <string name="medication_strength_hint">ej. 500 mg</string>
+    <string name="medication_form_label">Forma</string>
+    <string name="medication_form_hint">ej. Tableta</string>
+    <string name="medication_notes_label">Instrucciones / Notas</string>
+    <string name="medication_color_section">Etiqueta de Color</string>
+    <string name="medication_schedule_section">Horario de Recordatorios</string>
+    <string name="medication_add_time">Añadir hora</string>
+    <string name="medication_no_times">No se han añadido horas</string>
+    <string name="error_name_required">Por favor, introduce el nombre</string>
+    <string name="error_schedule_required">Por favor, añade al menos un horario</string>
+    <string name="back_button">Atrás</string>
+
+    <!-- Pantalla de Recordatorios -->
+    <string name="reminders_title">Recordatorios</string>
+    <string name="reminders_subtitle">Gestiona tu horario de medicación</string>
+    <string name="reminders_active_count">%d activos</string>
+    <string name="reminders_none">No hay recordatorios configurados</string>
+    <string name="reminders_empty_title">Sin recordatorios</string>
+    <string name="reminders_empty_desc">Añade un medicamento para configurar recordatorios</string>
+
+    <!-- Pantalla de Ajustes -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_subtitle">Personaliza tu experiencia</string>
+    <string name="settings_notifications_section">Notificaciones</string>
+    <string name="settings_push_notifications">Notificaciones Push</string>
+    <string name="settings_push_notifications_desc">Recibir recordatorios de medicación</string>
+    <string name="settings_sound">Sonido</string>
+    <string name="settings_sound_desc">Reproducir sonido para alarmas</string>
+    <string name="settings_vibration">Vibración</string>
+    <string name="settings_vibration_desc">Vibrar para recordatorios</string>
+    <string name="settings_appearance_section">Apariencia</string>
+    <string name="settings_dark_mode">Modo Oscuro</string>
+    <string name="settings_dark_mode_desc">Usar esquema de colores oscuros</string>
+    <string name="settings_follow_system">Seguir Sistema</string>
+    <string name="settings_follow_system_desc">Usar ajustes de tema del sistema</string>
+    <string name="settings_about_section">Acerca de</string>
+    <string name="settings_version">Versión</string>
+    <string name="settings_privacy_policy">Política de Privacidad</string>
+    <string name="settings_privacy_policy_desc">Ver nuestra política de privacidad</string>
+    <string name="settings_data_source">Fuente de datos</string>
+    <string name="settings_data_source_desc">RxNorm – National Library of Medicine</string>
+
+    <!-- Permiso de Notificaciones -->
+    <string name="perm_dialog_title">Activar Notificaciones</string>
+    <string name="perm_dialog_desc">Para asegurar que nunca olvides una dosis, activa las notificaciones. Es vital para tu horario.</string>
+    <string name="perm_dialog_allow">Permitir Notificaciones</string>
+    <string name="perm_dialog_settings">Abrir Ajustes</string>
+
+    <!-- Períodos del día -->
+    <string name="period_morning">Mañana</string>
+    <string name="period_afternoon">Tarde</string>
+    <string name="period_evening">Noche</string>
+    <string name="period_night">Noche</string>
+</resources>
