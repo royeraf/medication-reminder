@@ -57,20 +57,27 @@ class AlarmReceiver : BroadcastReceiver() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Build a locale-aware context so notification strings respect the saved language
-                val languageSetting = settingsDataStore.languageSetting.first()
-                val localizedContext = localizedContext(context, languageSetting)
-
-                showNotification(localizedContext, medicationId, medicationName, scheduleLabel, medicationColorIndex)
-
-                // Re-schedule for the next day
                 val medication = medicationRepository.getMedicationById(medicationId)
-                if (medication != null) {
-                    val schedules = medicationRepository.getSchedulesForMedicationSync(medicationId)
-                    val schedule = schedules.find { it.id == scheduleId }
-                    if (schedule != null && schedule.isEnabled) {
-                        alarmScheduler.scheduleAlarm(medication, schedule)
+                val schedules = if (medication != null)
+                    medicationRepository.getSchedulesForMedicationSync(medicationId)
+                else emptyList()
+                val schedule = schedules.find { it.id == scheduleId }
+
+                if (medication != null && schedule != null && schedule.isEnabled) {
+                    // Check if today is a valid day for this schedule
+                    val todayCalendarDay = java.util.Calendar.getInstance()
+                        .get(java.util.Calendar.DAY_OF_WEEK)
+                    val shouldNotify = schedule.isScheduledForDay(todayCalendarDay)
+
+                    if (shouldNotify) {
+                        // Build a locale-aware context so notification strings respect the saved language
+                        val languageSetting = settingsDataStore.languageSetting.first()
+                        val localizedContext = localizedContext(context, languageSetting)
+                        showNotification(localizedContext, medicationId, medicationName, scheduleLabel, medicationColorIndex)
                     }
+
+                    // Always re-schedule for the next valid day
+                    alarmScheduler.scheduleAlarm(medication, schedule)
                 }
             } finally {
                 result.finish()

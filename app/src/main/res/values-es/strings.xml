@@ -123,4 +123,44 @@
     <string name="period_afternoon">Tarde</string>
     <string name="period_evening">Noche</string>
     <string name="period_night">Noche</string>
+
+    <!-- Días de la semana -->
+    <string name="day_mon">Lunes</string>
+    <string name="day_tue">Martes</string>
+    <string name="day_wed">Miércoles</string>
+    <string name="day_thu">Jueves</string>
+    <string name="day_fri">Viernes</string>
+    <string name="day_sat">Sábado</string>
+    <string name="day_sun">Domingo</string>
+    <string name="day_mon_short">L</string>
+    <string name="day_tue_short">M</string>
+    <string name="day_wed_short">X</string>
+    <string name="day_thu_short">J</string>
+    <string name="day_fri_short">V</string>
+    <string name="day_sat_short">S</string>
+    <string name="day_sun_short">D</string>
+    <string name="day_mon_abbr">Lun</string>
+    <string name="day_tue_abbr">Mar</string>
+    <string name="day_wed_abbr">Mié</string>
+    <string name="day_thu_abbr">Jue</string>
+    <string name="day_fri_abbr">Vie</string>
+    <string name="day_sat_abbr">Sáb</string>
+    <string name="day_sun_abbr">Dom</string>
+
+    <!-- Visualización de días del schedule -->
+    <string name="schedule_every_day">Todos los días</string>
+    <string name="schedule_weekdays">Días laborables</string>
+    <string name="schedule_weekends">Fines de semana</string>
+
+    <!-- Pantalla de Historial -->
+    <string name="nav_history">Historial</string>
+    <string name="history_title">Historial</string>
+    <string name="history_subtitle">Últimos 7 días</string>
+    <string name="history_summary">Resumen</string>
+    <string name="history_total">Total</string>
+    <string name="history_taken">Tomadas</string>
+    <string name="history_missed">Perdidas</string>
+    <string name="history_adherence">%d%% adherencia</string>
+    <string name="history_empty_title">Sin historial aún</string>
+    <string name="history_empty_desc">Tu historial de medicación aparecerá aquí</string>
 </resources>

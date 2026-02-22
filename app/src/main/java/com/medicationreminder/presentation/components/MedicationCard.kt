@@ -1,27 +1,23 @@
 package com.medicationreminder.presentation.components
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Medication
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.medicationreminder.domain.model.Medication
+import com.medicationreminder.presentation.theme.ExpressiveShapes
 
 @Composable
 fun MedicationCard(
@@ -35,7 +31,7 @@ fun MedicationCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+        shape = ExpressiveShapes.card,              // M3E: expressive card shape
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -47,12 +43,12 @@ fun MedicationCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Pill color indicator + icon
+            // Pill color indicator + icon with expressive icon container
             Box(modifier = Modifier.size(52.dp)) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(ExpressiveShapes.iconContainer)   // M3E: expressive shape
                         .background(pillColor.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -123,14 +119,14 @@ fun MedicationCard(
 @Composable
 private fun ScheduleChip(label: String) {
     Surface(
-        shape = RoundedCornerShape(6.dp),
+        shape = ExpressiveShapes.chip,              // M3E: pill shape chips
         color = MaterialTheme.colorScheme.primaryContainer,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
             color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
         )
     }
 }

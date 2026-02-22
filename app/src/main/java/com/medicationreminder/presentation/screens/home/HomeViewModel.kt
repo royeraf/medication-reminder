@@ -12,9 +12,9 @@ import com.medicationreminder.domain.usecase.GetTodayDosesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import java.util.Calendar
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
 
 data class DayHistory(
     val dayStartMillis: Long,   // midnight of that day
@@ -64,28 +64,29 @@ class HomeViewModel @Inject constructor(
 
         val gracePeriodMs = 30 * 60 * 1000L // 30-minute window to mark a dose as taken
 
-        // Auto-mark any PENDING dose as MISSED only after the grace period has elapsed
-        viewModelScope.launch {
-            val now = System.currentTimeMillis()
-            doseLogRepository.getDoseLogsForRange(sevenDaysAgoStart, now)
-                .first()
-                .filter { it.status == DoseStatus.PENDING && it.scheduledTime < now - gracePeriodMs }
-                .forEach { dose ->
-                    doseLogRepository.updateDoseStatus(dose.id, DoseStatus.MISSED, null)
-                }
-        }
-
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
+            // Single combine: one observer for medications, one for dose logs
             combine(
                 getMedicationsUseCase(),
                 doseLogRepository.getDoseLogsForRange(sevenDaysAgoStart, endOfToday)
             ) { medications, allDoses ->
                 val now = System.currentTimeMillis()
 
+                // Auto-mark PENDING doses as MISSED after grace period
+                allDoses
+                    .filter { it.status == DoseStatus.PENDING && it.scheduledTime < now - gracePeriodMs }
+                    .forEach { dose ->
+                        doseLogRepository.updateDoseStatus(dose.id, DoseStatus.MISSED, null)
+                    }
+
+                // Ensure today's dose logs exist for all medications
+                medications.forEach { medication ->
+                    ensureTodayDoseLogs(medication)
+                }
+
                 val todayDoses = allDoses.filter { it.scheduledTime >= todayStart }
                 val takenCount = todayDoses.count { it.status == DoseStatus.TAKEN }
 
-                // Show as upcoming if still within the 30-minute grace window
                 val upcoming = todayDoses.filter {
                     it.status == DoseStatus.PENDING && it.scheduledTime >= now - gracePeriodMs
                 }
@@ -111,14 +112,6 @@ class HomeViewModel @Inject constructor(
                     )
                 }
             }.collect()
-        }
-
-        viewModelScope.launch {
-            getMedicationsUseCase().collectLatest { medications ->
-                medications.forEach { medication ->
-                    ensureTodayDoseLogs(medication)
-                }
-            }
         }
     }
 
@@ -146,7 +139,8 @@ class HomeViewModel @Inject constructor(
     private suspend fun ensureTodayDoseLogs(medication: Medication) {
         val schedules = medicationRepository.getSchedulesForMedicationSync(medication.id)
         val calendar = Calendar.getInstance()
-        schedules.filter { it.isEnabled }.forEach { schedule ->
+        val todayCalendarDay = calendar.get(Calendar.DAY_OF_WEEK)
+        schedules.filter { it.isEnabled && it.isScheduledForDay(todayCalendarDay) }.forEach { schedule ->
             calendar.set(Calendar.HOUR_OF_DAY, schedule.hour)
             calendar.set(Calendar.MINUTE, schedule.minute)
             calendar.set(Calendar.SECOND, 0)

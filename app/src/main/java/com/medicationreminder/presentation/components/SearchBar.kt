@@ -1,8 +1,8 @@
 package com.medicationreminder.presentation.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import com.medicationreminder.presentation.theme.ExpressiveShapes
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
@@ -51,7 +51,7 @@ fun MedSearchBar(
             }
         },
         singleLine = true,
-        shape = RoundedCornerShape(16.dp),
+        shape = ExpressiveShapes.chip,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.outline,

@@ -1,23 +1,30 @@
 package com.medicationreminder.presentation.screens.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.*
@@ -25,34 +32,48 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.medicationreminder.R
 import com.medicationreminder.data.local.entity.DoseStatus
 import com.medicationreminder.domain.model.DoseLog
 import com.medicationreminder.presentation.components.DoseCard
+import com.medicationreminder.presentation.theme.ExpressiveMotion
+import com.medicationreminder.presentation.theme.ExpressiveShapes
 import com.medicationreminder.presentation.theme.MedicationReminderTheme
 import com.medicationreminder.presentation.theme.Primary
 import com.medicationreminder.presentation.theme.PrimaryVariant
+import com.medicationreminder.util.toFormattedTime
+import com.medicationreminder.util.toFormattedHeaderDate
+import com.medicationreminder.util.toFormattedAccordionDate
 import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.*
 
 @Composable
 fun HomeScreen(
+    onNavigateToHistory: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     HomeScreenContent(
         uiState = uiState,
         onTakeDose = viewModel::markDoseTaken,
-        onRefresh = viewModel::refresh
+        onRefresh = viewModel::refresh,
+        onNavigateToHistory = onNavigateToHistory
     )
 }
 
@@ -60,15 +81,23 @@ fun HomeScreen(
 fun HomeScreenContent(
     uiState: HomeUiState,
     onTakeDose: (DoseLog) -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onNavigateToHistory: () -> Unit = {}
 ) {
-    val progress by animateFloatAsState(
-        targetValue = if (uiState.totalCount > 0)
-            uiState.takenCount.toFloat() / uiState.totalCount.toFloat()
-        else 0f,
-        animationSpec = tween(durationMillis = 800),
-        label = "progress"
-    )
+    val targetProgress = if (uiState.totalCount > 0)
+        uiState.takenCount.toFloat() / uiState.totalCount.toFloat()
+    else 0f
+    // M3E: spring animation for progress bar–feels alive, not mechanical
+    val progressAnim = remember { Animatable(0f) }
+    LaunchedEffect(targetProgress) {
+        progressAnim.animateTo(
+            targetValue = targetProgress,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -81,7 +110,7 @@ fun HomeScreenContent(
                 greeting = uiState.greeting,
                 takenCount = uiState.takenCount,
                 totalCount = uiState.totalCount,
-                progress = progress,
+                progressProvider = { progressAnim.value },
                 onRefresh = onRefresh
             )
         }
@@ -115,6 +144,93 @@ fun HomeScreenContent(
                     )
                 }
             }
+
+            // 7-Day History navigation button
+            item {
+                ViewHistoryButton(onClick = onNavigateToHistory)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ViewHistoryButton(onClick: () -> Unit) {
+    val isDark = isSystemInDarkTheme()
+
+    val cardGradient = if (isDark) {
+        Brush.linearGradient(listOf(Color(0xFF0F2027), Color(0xFF1A3A4A)))
+    } else {
+        Brush.linearGradient(listOf(Color(0xFFE0F7FA), Color(0xFFB2EBF2)))
+    }
+
+    val iconGradient = if (isDark) {
+        Brush.linearGradient(listOf(Color(0xFF00BCD4), Color(0xFF26C6DA)))
+    } else {
+        Brush.linearGradient(listOf(Primary, PrimaryVariant))
+    }
+
+    val titleColor = if (isDark) Color(0xFFE0F2F1) else Color(0xFF004D40)
+    val subtitleColor = if (isDark) Color(0xFF80CBC4) else Color(0xFF00796B)
+    val chevronColor = if (isDark) Color(0xFF4DD0E1) else Color(0xFF00897B)
+
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = ExpressiveShapes.card,              // M3E
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 4.dp else 3.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(cardGradient, ExpressiveShapes.card)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(ExpressiveShapes.iconContainer)    // M3E
+                    .background(iconGradient),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.CalendarMonth,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.history_title),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    color = titleColor
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = stringResource(R.string.history_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = subtitleColor
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(ExpressiveShapes.iconContainer)    // M3E
+                    .background(chevronColor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = null,
+                    tint = chevronColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }
@@ -124,13 +240,13 @@ private fun HomeHeader(
     greeting: String,
     takenCount: Int,
     totalCount: Int,
-    progress: Float,
+    progressProvider: () -> Float,
     onRefresh: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
+            .clip(ExpressiveShapes.header)           // M3E: expressive header shape
             .background(
                 Brush.linearGradient(listOf(Primary, PrimaryVariant))
             )
@@ -193,7 +309,7 @@ private fun HomeHeader(
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = ExpressiveShapes.cardLarge,  // M3E: larger card shape
                 color = Color.White.copy(alpha = 0.18f)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
@@ -208,9 +324,9 @@ private fun HomeHeader(
                                 style = MaterialTheme.typography.labelMedium,
                                 color = Color.White.copy(alpha = 0.8f)
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            val dateStr = SimpleDateFormat("EEEE, MMM d", Locale.getDefault())
-                                .format(Date())
+                            val dateStr = remember {
+                                System.currentTimeMillis().toFormattedHeaderDate()
+                            }
                             Text(
                                 text = dateStr,
                                 style = MaterialTheme.typography.bodySmall,
@@ -228,14 +344,14 @@ private fun HomeHeader(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    LinearProgressIndicator(
-                        progress = { progress },
+                    // M3E Expressive Progress Bar
+                    M3ExpressiveProgressBar(
+                        progress = progressProvider(),
+                        totalCount = totalCount,
+                        takenCount = takenCount,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(4.dp)),
-                        color = Color.White,
-                        trackColor = Color.White.copy(alpha = 0.25f)
+                            .height(20.dp)
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -309,7 +425,7 @@ private fun HistoryAccordion(
     var expanded by remember { mutableStateOf(dayHistory.isToday) }
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
-        animationSpec = tween(280),
+        animationSpec = ExpressiveMotion.chevronRotation, // M3E: spring rotation
         label = "chevron"
     )
 
@@ -328,21 +444,22 @@ private fun HistoryAccordion(
             cal.get(java.util.Calendar.YEAR) == yesterdayCal.get(java.util.Calendar.YEAR) &&
             cal.get(java.util.Calendar.DAY_OF_YEAR) == yesterdayCal.get(java.util.Calendar.DAY_OF_YEAR) ->
                 yesterdayLabel
-            else -> SimpleDateFormat("EEEE, d MMM", Locale.getDefault())
-                        .format(Date(dayHistory.dayStartMillis))
-                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+            else -> dayHistory.dayStartMillis.toFormattedAccordionDate()
         }
     }
 
+    val isDark = isSystemInDarkTheme()
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        shape = ExpressiveShapes.card,               // M3E
+        colors = CardDefaults.cardColors(containerColor = if (isDark) MaterialTheme.colorScheme.surface else Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         onClick = { expanded = !expanded }
     ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -351,16 +468,16 @@ private fun HistoryAccordion(
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .size(46.dp)
+                    .clip(ExpressiveShapes.iconContainer) // M3E
+                    .background(if (isDark) Color(0xFF134E4A) else Color(0xFFCCFBF1)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Rounded.History,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
+                    tint = if (isDark) Color(0xFF5EEAD4) else Color(0xFF0F766E),
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
@@ -378,7 +495,7 @@ private fun HistoryAccordion(
                         if (takenCount > 0) {
                             HistoryChip(
                                 text = stringResource(R.string.home_history_taken, takenCount),
-                                color = MaterialTheme.colorScheme.primary
+                                color = if (isDark) Color(0xFF5EEAD4) else Color(0xFF0F766E)
                             )
                         }
                         if (missedCount > 0) {
@@ -403,8 +520,8 @@ private fun HistoryAccordion(
 
         AnimatedVisibility(
             visible = expanded,
-            enter = expandVertically(tween(280)) + fadeIn(tween(280)),
-            exit = shrinkVertically(tween(280)) + fadeOut(tween(200))
+            enter = ExpressiveMotion.accordionEnter,  // M3E: bouncy spring
+            exit = ExpressiveMotion.accordionExit
         ) {
             Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)) {
                 HorizontalDivider(
@@ -421,13 +538,14 @@ private fun HistoryAccordion(
                 }
             }
         }
+        }
     }
 }
 
 @Composable
 private fun HistoryChip(text: String, color: Color) {
     Surface(
-        shape = RoundedCornerShape(6.dp),
+        shape = ExpressiveShapes.chip,              // M3E: pill chip
         color = color.copy(alpha = 0.12f)
     ) {
         Text(
@@ -436,6 +554,132 @@ private fun HistoryChip(text: String, color: Color) {
             color = color,
             modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
         )
+    }
+}
+
+
+// ─── M3 Expressive Progress Bar ──────────────────────────────────────────────
+/**
+ * M3 Expressive progress bar for the Home screen header.
+ *
+ * Features:
+ *  - Rounded pill track with layered gradient fill (white → white-alpha)
+ *  - Glow halo pulse on the progress tip
+ *  - Dose-tick markers (one per medication dose in totalCount)
+ *  - Spring-physics fill animation (via [progress] already animated upstream)
+ *  - "100% ✓" celebration text when fully complete
+ *  - Percentage label at the leading end of the fill
+ */
+@Composable
+private fun M3ExpressiveProgressBar(
+    progress: Float,                 // 0f … 1f (already spring-animated)
+    totalCount: Int,
+    takenCount: Int,
+    modifier: Modifier = Modifier,
+) {
+    val isComplete = takenCount > 0 && takenCount == totalCount
+
+    // Celebration pulse when finished
+    val glowAlpha by animateFloatAsState(
+        targetValue = if (isComplete) 0.55f else 0.25f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "glow"
+    )
+
+    Column(modifier = modifier) {
+        // ── Main track ────────────────────────────────────────────────────────
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(14.dp)
+        ) {
+            val trackH = size.height
+            val trackW = size.width
+            val radius = trackH / 2f
+            val strokeWidth = trackH
+
+            // 1. Track background (frosted dark pill)
+            drawRoundRect(
+                color = Color.White.copy(alpha = 0.20f),
+                size = size,
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius)
+            )
+
+            // 2. Filled segment (white with gradient opacity)
+            val fillW = (trackW * progress.coerceIn(0f, 1f)).coerceAtLeast(radius * 2)
+            drawRoundRect(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.White,
+                        Color.White.copy(alpha = 0.90f)
+                    ),
+                    startX = 0f,
+                    endX = fillW
+                ),
+                size = androidx.compose.ui.geometry.Size(fillW, trackH),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius)
+            )
+
+            // 3. Glow halo at the fill tip (M3E: "alive" leading edge)
+            if (progress > 0.02f) {
+                val tipX = fillW - radius
+                drawCircle(
+                    color = Color.White.copy(alpha = glowAlpha),
+                    radius = radius * 2.2f,
+                    center = androidx.compose.ui.geometry.Offset(tipX, size.height / 2f)
+                )
+            }
+
+            // 4. Dose-tick markers (thin vertical lines per dose slot)
+            if (totalCount > 1) {
+                val slotW = trackW / totalCount
+                for (i in 1 until totalCount) {
+                    val tickX = slotW * i
+                    drawLine(
+                        color = Color.Black.copy(alpha = 0.18f),
+                        start = androidx.compose.ui.geometry.Offset(tickX, trackH * 0.2f),
+                        end = androidx.compose.ui.geometry.Offset(tickX, trackH * 0.8f),
+                        strokeWidth = 1.5.dp.toPx()
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // ── Status row below the track ─────────────────────────────────────
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Percentage label (M3E: dynamic typography)
+            Text(
+                text = if (isComplete) "✓ 100%" else "${(progress * 100).toInt()}%",
+                style = MaterialTheme.typography.labelMedium,
+                color = if (isComplete)
+                    Color.White
+                else
+                    Color.White.copy(alpha = 0.85f),
+                fontWeight = if (isComplete) FontWeight.Bold else FontWeight.Medium
+            )
+
+            // Taken / Total fraction chips
+            Surface(
+                shape = CircleShape,
+                color = Color.White.copy(alpha = 0.15f)
+            ) {
+                Text(
+                    text = "$takenCount / $totalCount",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                )
+            }
+        }
     }
 }
 

@@ -2,7 +2,6 @@ package com.medicationreminder.presentation.screens.reminders
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -14,7 +13,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.medicationreminder.presentation.theme.ExpressiveMotion
+import com.medicationreminder.presentation.theme.ExpressiveShapes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Alarm
 import androidx.compose.material.icons.rounded.AlarmOff
@@ -118,13 +118,13 @@ private fun MedicationReminderCard(
     var expanded by remember { mutableStateOf(true) }
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
-        animationSpec = tween(300),
+        animationSpec = ExpressiveMotion.chevronRotation, // M3E
         label = "chevron"
     )
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = ExpressiveShapes.card,              // M3E
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -138,7 +138,7 @@ private fun MedicationReminderCard(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(ExpressiveShapes.iconContainer)  // M3E
                             .background(pillColor.copy(alpha = 0.15f)),
                         contentAlignment = Alignment.Center
                     ) {
@@ -175,7 +175,7 @@ private fun MedicationReminderCard(
                 // Active count badge
                 val enabledCount = medication.schedules.count { it.isEnabled }
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = ExpressiveShapes.chip,
                     color = if (enabledCount > 0) MaterialTheme.colorScheme.primaryContainer
                     else MaterialTheme.colorScheme.surfaceVariant
                 ) {
@@ -198,8 +198,8 @@ private fun MedicationReminderCard(
 
             AnimatedVisibility(
                 visible = expanded,
-                enter = expandVertically(animationSpec = tween(300)) + fadeIn(tween(300)),
-                exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(tween(200))
+                enter = ExpressiveMotion.accordionEnter,  // M3E
+                exit = ExpressiveMotion.accordionExit
             ) {
                 if (medication.schedules.isNotEmpty()) {
                     Column {
@@ -239,10 +239,28 @@ private fun ScheduleToggleRow(
     schedule: Schedule,
     onToggle: (Boolean) -> Unit
 ) {
+    val daysDisplayText = when {
+        schedule.isEveryDay -> stringResource(R.string.schedule_every_day)
+        schedule.isWeekdaysOnly -> stringResource(R.string.schedule_weekdays)
+        schedule.isWeekendsOnly -> stringResource(R.string.schedule_weekends)
+        else -> {
+            val abbrs = listOf(
+                stringResource(R.string.day_mon_abbr),
+                stringResource(R.string.day_tue_abbr),
+                stringResource(R.string.day_wed_abbr),
+                stringResource(R.string.day_thu_abbr),
+                stringResource(R.string.day_fri_abbr),
+                stringResource(R.string.day_sat_abbr),
+                stringResource(R.string.day_sun_abbr)
+            )
+            schedule.daysOfWeek.sorted().map { abbrs[it - 1] }.joinToString(", ")
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(ExpressiveShapes.surface)          // M3E
             .background(
                 if (schedule.isEnabled) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
                 else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -266,7 +284,7 @@ private fun ScheduleToggleRow(
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
             Text(
-                text = schedule.label,
+                text = "${schedule.label} · $daysDisplayText",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
                     alpha = if (schedule.isEnabled) 1f else 0.5f

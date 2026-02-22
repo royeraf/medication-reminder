@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.medicationreminder.presentation.theme.ExpressiveShapes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -55,6 +55,7 @@ fun AddMedicationScreen(
         onAddSchedule = viewModel::addSchedule,
         onUpdateSchedule = viewModel::updateSchedule,
         onRemoveSchedule = viewModel::removeSchedule,
+        onUpdateScheduleDays = viewModel::updateScheduleDays,
         onClearError = viewModel::clearError
     )
 }
@@ -73,9 +74,10 @@ internal fun AddMedicationScreenContent(
     onDosageFormChange: (String) -> Unit,
     onInstructionsChange: (String) -> Unit,
     onColorSelected: (Int) -> Unit,
-    onAddSchedule: (Int, Int, String) -> Unit,
-    onUpdateSchedule: (Int, Int, Int, String) -> Unit,
+    onAddSchedule: (Int, Int, String, List<Int>) -> Unit,
+    onUpdateSchedule: (Int, Int, Int, String, List<Int>) -> Unit,
     onRemoveSchedule: (Int) -> Unit,
+    onUpdateScheduleDays: (Int, List<Int>) -> Unit,
     onClearError: () -> Unit
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
@@ -150,9 +152,11 @@ internal fun AddMedicationScreenContent(
                     else -> nightLabel
                 }
                 if (editingScheduleIndex >= 0) {
-                    onUpdateSchedule(editingScheduleIndex, hour, minute, label)
+                    val existingDays = uiState.schedules.getOrNull(editingScheduleIndex)?.daysOfWeek
+                        ?: listOf(1, 2, 3, 4, 5, 6, 7)
+                    onUpdateSchedule(editingScheduleIndex, hour, minute, label, existingDays)
                 } else {
-                    onAddSchedule(hour, minute, label)
+                    onAddSchedule(hour, minute, label, listOf(1, 2, 3, 4, 5, 6, 7))
                 }
                 showTimePicker = false
                 editingScheduleIndex = -1
@@ -206,7 +210,7 @@ internal fun AddMedicationScreenContent(
                         .navigationBarsPadding()
                         .padding(horizontal = 20.dp, vertical = 12.dp)
                         .height(52.dp),
-                    shape = RoundedCornerShape(14.dp)
+                    shape = ExpressiveShapes.button        // M3E: expressive button
                 ) {
                     if (uiState.isSaving) {
                         CircularProgressIndicator(
@@ -244,7 +248,7 @@ internal fun AddMedicationScreenContent(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = ExpressiveShapes.surface
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
@@ -287,7 +291,7 @@ internal fun AddMedicationScreenContent(
                 ) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = ExpressiveShapes.card,   // M3E
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
@@ -351,7 +355,7 @@ internal fun AddMedicationScreenContent(
                         onValueChange = onMedicationNameChange,
                         label = { Text(stringResource(R.string.medication_name_label)) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = ExpressiveShapes.surface,  // M3E
                         singleLine = true
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -360,7 +364,7 @@ internal fun AddMedicationScreenContent(
                             onValueChange = onStrengthChange,
                             label = { Text(stringResource(R.string.medication_strength_label)) },
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = ExpressiveShapes.surface,  // M3E
                             singleLine = true,
                             placeholder = { Text(stringResource(R.string.medication_strength_hint)) }
                         )
@@ -369,7 +373,7 @@ internal fun AddMedicationScreenContent(
                             onValueChange = onDosageFormChange,
                             label = { Text(stringResource(R.string.medication_form_label)) },
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = ExpressiveShapes.surface,  // M3E
                             singleLine = true,
                             placeholder = { Text(stringResource(R.string.medication_form_hint)) }
                         )
@@ -379,7 +383,7 @@ internal fun AddMedicationScreenContent(
                         onValueChange = onInstructionsChange,
                         label = { Text(stringResource(R.string.medication_notes_label)) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = ExpressiveShapes.surface,  // M3E
                         minLines = 2,
                         maxLines = 3
                     )
@@ -445,7 +449,7 @@ internal fun AddMedicationScreenContent(
                 if (uiState.schedules.isEmpty()) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = ExpressiveShapes.surface,  // M3E
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
@@ -481,7 +485,8 @@ internal fun AddMedicationScreenContent(
                                     editingScheduleIndex = index
                                     showTimePicker = true
                                 },
-                                onDelete = { onRemoveSchedule(index) }
+                                onDelete = { onRemoveSchedule(index) },
+                                onDaysChanged = { days -> onUpdateScheduleDays(index, days) }
                             )
                         }
                     }
@@ -515,59 +520,140 @@ private fun SectionHeader(title: String, icon: androidx.compose.ui.graphics.vect
 private fun ScheduleItem(
     schedule: Schedule,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onDaysChanged: (List<Int>) -> Unit
 ) {
+    val dayLabels = listOf(
+        stringResource(R.string.day_mon_short),
+        stringResource(R.string.day_tue_short),
+        stringResource(R.string.day_wed_short),
+        stringResource(R.string.day_thu_short),
+        stringResource(R.string.day_fri_short),
+        stringResource(R.string.day_sat_short),
+        stringResource(R.string.day_sun_short)
+    )
+
+    val daysDisplayText = when {
+        schedule.isEveryDay -> stringResource(R.string.schedule_every_day)
+        schedule.isWeekdaysOnly -> stringResource(R.string.schedule_weekdays)
+        schedule.isWeekendsOnly -> stringResource(R.string.schedule_weekends)
+        else -> {
+            val abbrs = listOf(
+                stringResource(R.string.day_mon_abbr),
+                stringResource(R.string.day_tue_abbr),
+                stringResource(R.string.day_wed_abbr),
+                stringResource(R.string.day_thu_abbr),
+                stringResource(R.string.day_fri_abbr),
+                stringResource(R.string.day_sat_abbr),
+                stringResource(R.string.day_sun_abbr)
+            )
+            schedule.daysOfWeek.sorted().map { abbrs[it - 1] }.joinToString(", ")
+        }
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = ExpressiveShapes.card,              // M3E
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(ExpressiveShapes.iconContainer) // M3E
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Alarm,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = formatTime(schedule.hour, schedule.minute),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "${schedule.label} · $daysDisplayText",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onEdit) {
+                    Icon(
+                        Icons.Rounded.Edit,
+                        contentDescription = "Edit",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        Icons.Rounded.DeleteOutline,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Day-of-week selector chips
+            DayOfWeekSelector(
+                selectedDays = schedule.daysOfWeek,
+                dayLabels = dayLabels,
+                onDaysChanged = onDaysChanged
+            )
+        }
+    }
+}
+
+@Composable
+private fun DayOfWeekSelector(
+    selectedDays: List<Int>,
+    dayLabels: List<String>,
+    onDaysChanged: (List<Int>) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        (1..7).forEach { day ->
+            val isSelected = day in selectedDays
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .weight(1f)
+                    .aspectRatio(1f)
+                    .clip(CircleShape)
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    )
+                    .clickable {
+                        val newDays = if (isSelected) {
+                            // Don't allow deselecting all days
+                            if (selectedDays.size > 1) selectedDays - day else selectedDays
+                        } else {
+                            selectedDays + day
+                        }
+                        onDaysChanged(newDays.sorted())
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.Alarm,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = formatTime(schedule.hour, schedule.minute),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = schedule.label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            IconButton(onClick = onEdit) {
-                Icon(
-                    Icons.Rounded.Edit,
-                    contentDescription = "Edit",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Rounded.DeleteOutline,
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.error
+                    text = dayLabels[day - 1],
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -584,7 +670,8 @@ fun AddMedicationScreenPreview() {
                 strength = "200mg",
                 dosageForm = "Tablet",
                 schedules = listOf(
-                    Schedule(id = 1, medicationId = 0, hour = 8, minute = 0, label = "Morning")
+                    Schedule(id = 1, medicationId = 0, hour = 8, minute = 0, label = "Morning"),
+                    Schedule(id = 2, medicationId = 0, hour = 15, minute = 0, label = "Afternoon", daysOfWeek = listOf(1, 3, 5))
                 )
             ),
             onNavigateBack = {},
@@ -597,9 +684,10 @@ fun AddMedicationScreenPreview() {
             onDosageFormChange = {},
             onInstructionsChange = {},
             onColorSelected = {},
-            onAddSchedule = { _, _, _ -> },
-            onUpdateSchedule = { _, _, _, _ -> },
+            onAddSchedule = { _, _, _, _ -> },
+            onUpdateSchedule = { _, _, _, _, _ -> },
             onRemoveSchedule = {},
+            onUpdateScheduleDays = { _, _ -> },
             onClearError = {}
         )
     }

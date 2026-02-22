@@ -1,19 +1,21 @@
 package com.medicationreminder.presentation.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Medication
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -21,38 +23,42 @@ import androidx.compose.ui.unit.dp
 import com.medicationreminder.R
 import com.medicationreminder.data.local.entity.DoseStatus
 import com.medicationreminder.domain.model.DoseLog
+import com.medicationreminder.presentation.theme.ExpressiveMotion
+import com.medicationreminder.presentation.theme.ExpressiveShapes
+import com.medicationreminder.presentation.theme.IconicShapes
+import com.medicationreminder.presentation.theme.asShape
 import com.medicationreminder.util.toFormattedTime
 
 @Composable
 fun DoseCard(
     doseLog: DoseLog,
     onTakeDose: (DoseLog) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isDark: Boolean = isSystemInDarkTheme()
 ) {
     val isTaken = doseLog.status == DoseStatus.TAKEN
     val isMissed = doseLog.status == DoseStatus.MISSED
-    val isDark = isSystemInDarkTheme()
 
     val containerColor = when {
-        isTaken -> if (isDark) Color(0xFF14532D) else Color(0xFFBBF7D0)
+        isTaken -> if (isDark) Color(0xFF134E4A) else Color(0xFFCCFBF1)
         isMissed -> MaterialTheme.colorScheme.errorContainer
-        else -> if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFF0FDF4)
+        else -> if (isDark) MaterialTheme.colorScheme.surface else Color.White
     }
 
     val contentColor = when {
-        isTaken -> if (isDark) Color(0xFF86EFAC) else Color(0xFF166534)
+        isTaken -> if (isDark) Color(0xFF5EEAD4) else Color(0xFF0F766E)
         isMissed -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.primary
+        else -> if (isDark) Color(0xFF2DD4BF) else Color(0xFF0D9488)
     }
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = ExpressiveShapes.card,              // M3E: expressive card shape
         colors = CardDefaults.cardColors(
             containerColor = containerColor,
             contentColor = if (isTaken || isMissed) contentColor else MaterialTheme.colorScheme.onSurface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isTaken) 0.dp else 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isTaken) 0.dp else 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -60,12 +66,17 @@ fun DoseCard(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Medication icon with color badge
-            Box(modifier = Modifier.size(48.dp)) {
+            // M3E: Iconic shape for icon container – Flower=taken, Burst=missed, Sunny=pending
+            val iconShape = when {
+                isTaken  -> IconicShapes.Flower   // Organic/health – dose taken
+                isMissed -> IconicShapes.Burst    // Attention – dose missed
+                else     -> IconicShapes.Sunny    // Energy – dose pending
+            }
+            Box(modifier = Modifier.size(52.dp)) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(iconShape)                     // M3E: iconic shape clip
                         .background(contentColor.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -137,13 +148,16 @@ fun DoseCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
+            // M3E: Spring-scale animated "Take Dose" button with pill shape
             if (!isTaken && !isMissed) {
                 FilledTonalButton(
                     onClick = { onTakeDose(doseLog) },
                     colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                        containerColor = if (isDark) Color(0xFF115E59) else Color(0xFFCCFBF1),
+                        contentColor = if (isDark) Color(0xFF5EEAD4) else Color(0xFF0F766E)
                     ),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    shape = ExpressiveShapes.chip,      // M3E: pill shape button
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
                     modifier = Modifier.height(36.dp)
                 ) {
                     Text(

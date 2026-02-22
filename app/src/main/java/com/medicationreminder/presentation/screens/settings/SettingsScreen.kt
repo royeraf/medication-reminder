@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
+import com.medicationreminder.presentation.theme.ExpressiveShapes
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.medicationreminder.R
 import com.medicationreminder.data.LanguageSetting
 import com.medicationreminder.data.ThemeSetting
@@ -28,8 +30,8 @@ import com.medicationreminder.presentation.theme.MedicationReminderTheme
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val themeSetting by viewModel.themeSetting.collectAsState()
-    val languageSetting by viewModel.languageSetting.collectAsState()
+    val themeSetting by viewModel.themeSetting.collectAsStateWithLifecycle()
+    val languageSetting by viewModel.languageSetting.collectAsStateWithLifecycle()
     
     SettingsScreenContent(
         themeSetting = themeSetting,
@@ -228,7 +230,7 @@ private fun LanguageSelectionDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            shape = RoundedCornerShape(24.dp),
+            shape = ExpressiveShapes.dialog,         // M3E
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
@@ -270,7 +272,7 @@ private fun LanguageOption(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(ExpressiveShapes.surface)          // M3E
             .clickable(onClick = onClick)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -297,7 +299,7 @@ private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = ExpressiveShapes.settingsCard,       // M3E
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         content = { Column(content = content) }

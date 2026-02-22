@@ -7,7 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.medicationreminder.presentation.theme.ExpressiveShapes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.*
@@ -60,31 +60,27 @@ fun MedicationsScreenContent(
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Show snackbar when medication deleted
-    val deletedMessage = stringResource(R.string.medications_deleted, uiState.deletedMedication?.name ?: "")
     LaunchedEffect(uiState.deletedMedication) {
-        uiState.deletedMedication?.let { _ ->
+        uiState.deletedMedication?.let { med ->
             snackbarHostState.showSnackbar(
-                message = deletedMessage,
+                message = "${med.name} deleted",
                 duration = SnackbarDuration.Short
             )
             onClearDeletedMedication()
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.Transparent
-    ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
-                .padding(innerPadding)
         ) {
             // Top bar with integrated Add Button
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .statusBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 20.dp)
             ) {
                 Row(
@@ -108,10 +104,10 @@ fun MedicationsScreenContent(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    
+
                     FilledIconButton(
                         onClick = onNavigateToAddMedication,
-                        shape = RoundedCornerShape(14.dp),
+                        shape = ExpressiveShapes.iconContainer, // M3E
                         colors = IconButtonDefaults.filledIconButtonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -158,6 +154,11 @@ fun MedicationsScreenContent(
                 }
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

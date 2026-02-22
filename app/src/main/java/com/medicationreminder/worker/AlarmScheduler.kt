@@ -29,7 +29,9 @@ class AlarmScheduler @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val triggerTime = getNextTriggerTime(schedule.hour, schedule.minute)
+        val triggerTime = getNextTriggerTime(schedule.hour, schedule.minute, schedule.daysOfWeek)
+        // No valid day found (empty daysOfWeek) – skip scheduling
+        if (triggerTime == null) return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (alarmManager.canScheduleExactAlarms()) {
@@ -87,7 +89,15 @@ class AlarmScheduler @Inject constructor(
             putExtra(AlarmReceiver.EXTRA_REQUEST_CODE, schedule.alarmRequestCode)
         }
 
-    private fun getNextTriggerTime(hour: Int, minute: Int): Long {
+    /**
+     * Computes the next trigger time in millis for the given [hour] and [minute],
+     * only on days present in [daysOfWeek] (ISO: 1=Mon .. 7=Sun).
+     *
+     * Returns null if [daysOfWeek] is empty.
+     */
+    internal fun getNextTriggerTime(hour: Int, minute: Int, daysOfWeek: List<Int>): Long? {
+        if (daysOfWeek.isEmpty()) return null
+
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
@@ -95,11 +105,23 @@ class AlarmScheduler @Inject constructor(
             set(Calendar.MILLISECOND, 0)
         }
 
-        // If the time has already passed today, schedule for tomorrow
-        if (calendar.timeInMillis <= System.currentTimeMillis()) {
+        // If the time has already passed today, start checking from tomorrow
+        val startFromTomorrow = calendar.timeInMillis <= System.currentTimeMillis()
+        if (startFromTomorrow) {
             calendar.add(Calendar.DAY_OF_YEAR, 1)
         }
 
-        return calendar.timeInMillis
+        // Check up to 7 days to find a matching day-of-week
+        for (i in 0 until 7) {
+            val calendarDay = calendar.get(Calendar.DAY_OF_WEEK)
+            val isoDay = Schedule.calendarToIsoDayOfWeek(calendarDay)
+            if (isoDay in daysOfWeek) {
+                return calendar.timeInMillis
+            }
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+        }
+
+        // Defensive fallback – should not happen if daysOfWeek is valid
+        return null
     }
 }

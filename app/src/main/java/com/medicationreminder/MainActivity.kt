@@ -2,15 +2,13 @@ package com.medicationreminder
 
 import android.Manifest
 import android.app.AlarmManager
-import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,7 +16,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import android.content.res.Resources
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Alarm
 import androidx.compose.material.icons.rounded.NotificationsActive
@@ -42,49 +41,43 @@ import com.medicationreminder.presentation.navigation.AppNavigation
 import com.medicationreminder.presentation.screens.settings.SettingsViewModel
 import com.medicationreminder.presentation.theme.MedicationReminderTheme
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Locale
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Track whether settings have loaded from DataStore
+        var settingsReady = false
+        splashScreen.setKeepOnScreenCondition { !settingsReady }
 
         setContent {
             val settingsViewModel: SettingsViewModel = hiltViewModel()
             val themeSetting by settingsViewModel.themeSetting.collectAsState()
             val languageSetting by settingsViewModel.languageSetting.collectAsState()
 
-            // Handle language change
-            val context = LocalContext.current
+            // Detect when DataStore has emitted real values (not initial defaults)
+            val isThemeLoaded by settingsViewModel.isLoaded.collectAsState()
+
+            // Handle language change via AppCompatDelegate (no activity recreate needed)
             LaunchedEffect(languageSetting) {
-                val locale = when (languageSetting) {
-                    LanguageSetting.SYSTEM -> {
-                        // Read the true device locale from system resources, NOT Locale.getDefault()
-                        // which reflects whatever setDefault() last set (the in-app override).
-                        val systemConfig = Resources.getSystem().configuration
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            systemConfig.locales[0]
-                        } else {
-                            @Suppress("DEPRECATION")
-                            systemConfig.locale
-                        }
-                    }
-                    else -> Locale(languageSetting.code)
+                if (!isThemeLoaded) return@LaunchedEffect
+                val localeList = when (languageSetting) {
+                    LanguageSetting.SYSTEM -> LocaleListCompat.getEmptyLocaleList()
+                    else -> LocaleListCompat.forLanguageTags(languageSetting.code)
                 }
-
-                val config = context.resources.configuration
-                if (config.locales[0].language != locale.language) {
-                    Locale.setDefault(locale)
-                    config.setLocale(locale)
-                    context.resources.updateConfiguration(config, context.resources.displayMetrics)
-
-                    // Re-trigger recomposition by finding activity and recreating
-                    (context as? MainActivity)?.recreate()
+                val current = AppCompatDelegate.getApplicationLocales()
+                if (current != localeList) {
+                    AppCompatDelegate.setApplicationLocales(localeList)
                 }
             }
+
+            // Keep splash until settings loaded
+            if (!isThemeLoaded) return@setContent
+            settingsReady = true
 
             val darkTheme = when (themeSetting) {
                 ThemeSetting.LIGHT -> false
@@ -97,10 +90,11 @@ class MainActivity : ComponentActivity() {
                 var showExactAlarmDialog by remember { mutableStateOf(false) }
 
                 // Check notification permission on startup (Android 13+)
+                val activity = this@MainActivity
                 LaunchedEffect(Unit) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         if (ContextCompat.checkSelfPermission(
-                                context,
+                                activity,
                                 Manifest.permission.POST_NOTIFICATIONS
                             ) != PackageManager.PERMISSION_GRANTED
                         ) {
@@ -108,7 +102,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        val alarmManager = context.getSystemService(AlarmManager::class.java)
+                        val alarmManager = activity.getSystemService(AlarmManager::class.java)
                         if (!alarmManager.canScheduleExactAlarms()) {
                             showExactAlarmDialog = true
                         }

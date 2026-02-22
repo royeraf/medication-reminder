@@ -146,12 +146,13 @@ class AddMedicationViewModel @Inject constructor(
     fun onColorSelected(index: Int) =
         _uiState.update { it.copy(selectedColorIndex = index) }
 
-    fun addSchedule(hour: Int, minute: Int, label: String) {
+    fun addSchedule(hour: Int, minute: Int, label: String, daysOfWeek: List<Int> = listOf(1, 2, 3, 4, 5, 6, 7)) {
         val schedule = Schedule(
             medicationId = _uiState.value.medicationId,
             label = label,
             hour = hour,
-            minute = minute
+            minute = minute,
+            daysOfWeek = daysOfWeek
         )
         _uiState.update { it.copy(schedules = it.schedules + schedule) }
     }
@@ -162,10 +163,25 @@ class AddMedicationViewModel @Inject constructor(
         }
     }
 
-    fun updateSchedule(index: Int, hour: Int, minute: Int, label: String) {
+    fun updateSchedule(index: Int, hour: Int, minute: Int, label: String, daysOfWeek: List<Int>) {
         _uiState.update { state ->
             val updated = state.schedules.toMutableList()
-            updated[index] = updated[index].copy(hour = hour, minute = minute, label = label)
+            updated[index] = updated[index].copy(
+                hour = hour,
+                minute = minute,
+                label = label,
+                daysOfWeek = daysOfWeek
+            )
+            state.copy(schedules = updated)
+        }
+    }
+
+    fun updateScheduleDays(index: Int, daysOfWeek: List<Int>) {
+        _uiState.update { state ->
+            val updated = state.schedules.toMutableList()
+            if (index in updated.indices) {
+                updated[index] = updated[index].copy(daysOfWeek = daysOfWeek)
+            }
             state.copy(schedules = updated)
         }
     }

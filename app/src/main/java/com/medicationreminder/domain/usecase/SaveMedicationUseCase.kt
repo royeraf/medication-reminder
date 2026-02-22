@@ -43,8 +43,12 @@ class SaveMedicationUseCase @Inject constructor(
             }
             
             if (match != null) {
-                // Preserve existing state for matching time
-                match.copy(label = incoming.label, medicationId = medicationId)
+                // Preserve existing state for matching time, but update daysOfWeek
+                match.copy(
+                    label = incoming.label,
+                    medicationId = medicationId,
+                    daysOfWeek = incoming.daysOfWeek
+                )
             } else {
                 // New schedule time
                 val requestCode = repository.getNextAlarmRequestCode() + index
@@ -68,28 +72,31 @@ class SaveMedicationUseCase @Inject constructor(
         // Fetch saved schedules to get their IDs and ensure dose logs for today
         val savedSchedules = repository.getSchedulesForMedicationSync(medicationId)
         val calendar = Calendar.getInstance()
+        val todayCalendarDay = calendar.get(Calendar.DAY_OF_WEEK)
         
         savedSchedules.forEach { schedule ->
             if (schedule.isEnabled) {
                 alarmScheduler.scheduleAlarm(savedMedication, schedule)
                 
-                // Ensure dose log for today
-                calendar.set(Calendar.HOUR_OF_DAY, schedule.hour)
-                calendar.set(Calendar.MINUTE, schedule.minute)
-                calendar.set(Calendar.SECOND, 0)
-                calendar.set(Calendar.MILLISECOND, 0)
-                val scheduledTime = calendar.timeInMillis
-                
-                doseLogRepository.saveDoseLog(
-                    DoseLog(
-                        medicationId = medicationId,
-                        scheduleId = schedule.id,
-                        scheduledTime = scheduledTime,
-                        status = DoseStatus.PENDING,
-                        medicationName = savedMedication.name,
-                        scheduleLabel = schedule.label
+                // Only create dose log if today is in daysOfWeek
+                if (schedule.isScheduledForDay(todayCalendarDay)) {
+                    calendar.set(Calendar.HOUR_OF_DAY, schedule.hour)
+                    calendar.set(Calendar.MINUTE, schedule.minute)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                    val scheduledTime = calendar.timeInMillis
+                    
+                    doseLogRepository.saveDoseLog(
+                        DoseLog(
+                            medicationId = medicationId,
+                            scheduleId = schedule.id,
+                            scheduledTime = scheduledTime,
+                            status = DoseStatus.PENDING,
+                            medicationName = savedMedication.name,
+                            scheduleLabel = schedule.label
+                        )
                     )
-                )
+                }
             }
         }
 

@@ -59,6 +59,7 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.appcompat)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -67,6 +68,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.graphics.shapes)              // MaterialShapes iconic shapes
+    implementation(libs.ui.text.google.fonts)         // Downloadable Google Fonts (Inter)
 
     // Hilt
     implementation(libs.hilt.android)
@@ -108,6 +111,9 @@ dependencies {
 
     // Liquid Glass (backdrop blur / glassmorphism)
     implementation(libs.backdrop)
+
+    // Baseline Profile (AOT compilation for faster startup)
+    implementation(libs.profile.installer)
 
     // Testing
     testImplementation(libs.junit)

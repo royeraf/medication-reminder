@@ -8,6 +8,7 @@ import com.medicationreminder.domain.repository.MedicationRepository
 import com.medicationreminder.domain.usecase.GetMedicationsUseCase
 import com.medicationreminder.worker.AlarmScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -45,6 +46,8 @@ class RemindersViewModel @Inject constructor(
                         combine(scheduleFlows) { it.toList() }
                     }
                 }
+                .distinctUntilChanged()
+                .flowOn(Dispatchers.Default)
                 .collect { medicationsWithSchedules ->
                     _uiState.update {
                         it.copy(medications = medicationsWithSchedules, isLoading = false)

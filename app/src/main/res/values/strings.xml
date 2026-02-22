@@ -123,4 +123,44 @@
     <string name="period_afternoon">Afternoon</string>
     <string name="period_evening">Evening</string>
     <string name="period_night">Night</string>
+
+    <!-- Days of week -->
+    <string name="day_mon">Monday</string>
+    <string name="day_tue">Tuesday</string>
+    <string name="day_wed">Wednesday</string>
+    <string name="day_thu">Thursday</string>
+    <string name="day_fri">Friday</string>
+    <string name="day_sat">Saturday</string>
+    <string name="day_sun">Sunday</string>
+    <string name="day_mon_short">M</string>
+    <string name="day_tue_short">T</string>
+    <string name="day_wed_short">W</string>
+    <string name="day_thu_short">T</string>
+    <string name="day_fri_short">F</string>
+    <string name="day_sat_short">S</string>
+    <string name="day_sun_short">S</string>
+    <string name="day_mon_abbr">Mon</string>
+    <string name="day_tue_abbr">Tue</string>
+    <string name="day_wed_abbr">Wed</string>
+    <string name="day_thu_abbr">Thu</string>
+    <string name="day_fri_abbr">Fri</string>
+    <string name="day_sat_abbr">Sat</string>
+    <string name="day_sun_abbr">Sun</string>
+
+    <!-- Schedule day display -->
+    <string name="schedule_every_day">Every day</string>
+    <string name="schedule_weekdays">Weekdays</string>
+    <string name="schedule_weekends">Weekends</string>
+
+    <!-- History Screen -->
+    <string name="nav_history">History</string>
+    <string name="history_title">History</string>
+    <string name="history_subtitle">Last 7 days</string>
+    <string name="history_summary">Summary</string>
+    <string name="history_total">Total</string>
+    <string name="history_taken">Taken</string>
+    <string name="history_missed">Missed</string>
+    <string name="history_adherence">%d%% adherence</string>
+    <string name="history_empty_title">No history yet</string>
+    <string name="history_empty_desc">Your medication history will appear here</string>
 </resources>

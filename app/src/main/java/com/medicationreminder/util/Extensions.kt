@@ -1,22 +1,35 @@
 package com.medicationreminder.util
 
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+// Cache formatters. DateTimeFormatter is thread-safe and faster than SimpleDateFormat.
+private val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault()).withZone(ZoneId.systemDefault())
+private val dateFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault()).withZone(ZoneId.systemDefault())
+private val dateTimeFormatter = DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.getDefault()).withZone(ZoneId.systemDefault())
+private val headerDateFormatter = DateTimeFormatter.ofPattern("EEEE, MMM d", Locale.getDefault()).withZone(ZoneId.systemDefault())
+private val accordionDateFormatter = DateTimeFormatter.ofPattern("EEEE, d MMM", Locale.getDefault()).withZone(ZoneId.systemDefault())
+
+fun Long.toFormattedHeaderDate(): String {
+    return headerDateFormatter.format(Instant.ofEpochMilli(this)).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+}
+
+fun Long.toFormattedAccordionDate(): String {
+    return accordionDateFormatter.format(Instant.ofEpochMilli(this)).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+}
+
 fun Long.toFormattedTime(): String {
-    val sdf = SimpleDateFormat("h:mm a", Locale.getDefault())
-    return sdf.format(Date(this))
+    return timeFormatter.format(Instant.ofEpochMilli(this))
 }
 
 fun Long.toFormattedDate(): String {
-    val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
-    return sdf.format(Date(this))
+    return dateFormatter.format(Instant.ofEpochMilli(this))
 }
 
 fun Long.toFormattedDateTime(): String {
-    val sdf = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault())
-    return sdf.format(Date(this))
+    return dateTimeFormatter.format(Instant.ofEpochMilli(this))
 }
 
 fun Int.toTimeString(): String {
